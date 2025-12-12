@@ -1,0 +1,15 @@
+.claude/
+    skills/
+        SKILL.md
+        tools/
+            fork_terminal.py
+        prompts/
+            fork_summary_user_prompt.md
+        cookbook/
+            cli-command.md
+            gemini-cli.md
+            codex-cli.md
+            claude-code.md
+.gitignore - python defaults
+.env.sample - GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY
+README.md
