@@ -32,12 +32,6 @@ When changes have been made to the repository:
    - Focuses on the "why" and impact
    - Uses imperative mood (e.g., "Add feature" not "Added feature")
    - Is concise but descriptive (1-3 sentences)
-   - Includes the standard footer:
-     ```
-     🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-     Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-     ```
 5. **Commit**: Create the commit with the generated message using heredoc format
 6. **Sync with Remote**: Run `git push` to sync with the remote repository
 7. **Verify**: Run `git status` to confirm everything is clean and synced
@@ -47,7 +41,7 @@ When changes have been made to the repository:
 ### Good Commit Messages
 - "Refactor Braintrust skills into workflow-based modules for improved token efficiency"
 - "Add environment configuration files for Braintrust API credentials"
-- "Create auto-commit skill for automatic git operations"
+- "Create git-auto-commit skill for automatic git operations"
 - "Fix authentication bug in user login flow"
 - "Update README with installation instructions"
 
@@ -66,10 +60,6 @@ Always use this format:
 <Type>: <Short summary>
 
 <Optional longer description if needed>
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 Common types:
@@ -101,10 +91,6 @@ Split monolithic braintrust skill into focused skills: braintrust-core (projects
 braintrust-experimentation (prompts/datasets/experiments), braintrust-evaluation
 (eval runner), and braintrust-logs (production monitoring). This improves token
 efficiency by ~30% for typical workflows.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 EOF
 )"
 
