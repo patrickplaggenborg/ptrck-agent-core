@@ -10,11 +10,27 @@ import json
 import argparse
 import requests
 from typing import Optional, Dict, Any
+from pathlib import Path
 
 API_BASE_URL = "https://api.braintrust.dev"
 
+def load_env():
+    """Load environment variables from .env file if it exists"""
+    env_path = Path.cwd() / ".env"
+    if env_path.exists():
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    if key and key not in os.environ:
+                        os.environ[key] = value
+
 def get_api_key() -> str:
     """Get the Braintrust API key from environment"""
+    load_env()
     api_key = os.environ.get("BRAINTRUST_API_KEY")
     if not api_key:
         raise ValueError("BRAINTRUST_API_KEY environment variable not set")
@@ -64,10 +80,21 @@ def get_prompt(prompt_id: str) -> None:
     result = make_request("GET", f"/v1/prompt/{prompt_id}")
     print(json.dumps(result, indent=2))
 
-def create_prompt(name: str, project_id: str, prompt_data: Optional[str] = None, description: Optional[str] = None) -> None:
+def create_prompt(name: str, project_id: str, slug: Optional[str] = None, prompt_data: Optional[str] = None, description: Optional[str] = None) -> None:
     """Create a new prompt"""
+    # Auto-generate slug from name if not provided
+    if not slug:
+        slug = name.lower().replace(' ', '-').replace('_', '-')
+        # Remove special characters except hyphens
+        slug = ''.join(c for c in slug if c.isalnum() or c == '-')
+        # Remove consecutive hyphens
+        while '--' in slug:
+            slug = slug.replace('--', '-')
+        slug = slug.strip('-')
+
     data = {
         "name": name,
+        "slug": slug,
         "project_id": project_id
     }
 
@@ -126,6 +153,7 @@ def main():
     create_parser = subparsers.add_parser("create", help="Create a new prompt")
     create_parser.add_argument("--name", required=True, help="Prompt name")
     create_parser.add_argument("--project-id", required=True, help="Project ID")
+    create_parser.add_argument("--slug", help="Prompt slug (auto-generated from name if not provided)")
     create_parser.add_argument("--prompt-data", help="Prompt data (JSON string or text)")
     create_parser.add_argument("--description", help="Prompt description")
 
@@ -152,7 +180,7 @@ def main():
         elif args.command == "get":
             get_prompt(args.prompt_id)
         elif args.command == "create":
-            create_prompt(args.name, args.project_id, args.prompt_data, args.description)
+            create_prompt(args.name, args.project_id, args.slug, args.prompt_data, args.description)
         elif args.command == "update":
             update_prompt(args.prompt_id, args.name, args.prompt_data, args.description)
         elif args.command == "delete":

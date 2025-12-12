@@ -24,8 +24,12 @@ This is the core skill for day-to-day AI experimentation workflows on Braintrust
 Before using this skill:
 
 1. **Braintrust SDK installed**: `pip install braintrust`
-2. **API key configured**: `export BRAINTRUST_API_KEY=your_api_key_here`
+2. **API key configured**:
+   - Set in `.env` file: `BRAINTRUST_API_KEY=your_api_key_here` (automatically loaded)
+   - Or export manually: `export BRAINTRUST_API_KEY=your_api_key_here`
 3. **Project ID available**: Use `braintrust-core` skill to list or create projects
+
+**Note**: All scripts automatically load environment variables from a `.env` file in the current directory if it exists.
 
 ## Available Tools
 
@@ -48,29 +52,36 @@ Prompt data can be JSON or plain text. Plain text is automatically wrapped as `{
 **Common Usage:**
 ```bash
 # List prompts for a project
-python3 scripts/braintrust_prompts.py list --project-id PROJECT_ID
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py list --project-id PROJECT_ID
 
-# Create a simple prompt
-python3 scripts/braintrust_prompts.py create \
+# Create a simple prompt (slug auto-generated from name)
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py create \
   --name "QA Assistant" \
   --project-id PROJECT_ID \
   --prompt-data "You are a helpful assistant that answers questions accurately."
 
+# Create with custom slug
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py create \
+  --name "QA Assistant" \
+  --slug "qa-assistant-v2" \
+  --project-id PROJECT_ID \
+  --prompt-data "You are a helpful assistant that answers questions accurately."
+
 # Create with JSON template
-python3 scripts/braintrust_prompts.py create \
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py create \
   --name "Structured Prompt" \
   --project-id PROJECT_ID \
   --prompt-data '{"prompt": "Answer about {{topic}}", "model": "gpt-4", "temperature": 0.7}'
 
 # Get current prompt version
-python3 scripts/braintrust_prompts.py get PROMPT_ID
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py get PROMPT_ID
 
 # Update prompt
-python3 scripts/braintrust_prompts.py update PROMPT_ID \
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py update PROMPT_ID \
   --prompt-data "You are a helpful and friendly assistant."
 
 # Delete prompt
-python3 scripts/braintrust_prompts.py delete PROMPT_ID
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py delete PROMPT_ID
 ```
 
 ### 2. Dataset Management (`braintrust_datasets.py`)

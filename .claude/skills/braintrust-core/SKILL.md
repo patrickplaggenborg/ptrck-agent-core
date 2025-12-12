@@ -29,18 +29,20 @@ Before using this skill, ensure:
    ```
 
 2. **API key is configured**:
-   ```bash
-   echo $BRAINTRUST_API_KEY
-   ```
+   - Set in `.env` file: `BRAINTRUST_API_KEY=your_api_key_here` (automatically loaded)
+   - Or export manually: `export BRAINTRUST_API_KEY=your_api_key_here`
+   - Verify: `echo $BRAINTRUST_API_KEY`
 
-   If not set, guide the user to:
+   To get your API key:
    - Visit [Braintrust Settings](https://www.braintrust.dev/app/settings)
-   - Copy their API key
-   - Set environment variable: `export BRAINTRUST_API_KEY=your_api_key_here`
+   - Copy your API key
+   - Add to `.env` file or export as environment variable
+
+**Note**: All scripts automatically load environment variables from a `.env` file in the current directory if it exists.
 
 ## Project Management Tool
 
-The project management tool is located at `scripts/braintrust_projects.py`. Execute it using `python3` with appropriate commands.
+The project management tool is located at `.claude/skills/braintrust-core/scripts/braintrust_projects.py`. Execute it using `python3` with appropriate commands.
 
 ### Available Commands
 
@@ -55,7 +57,7 @@ The project management tool is located at `scripts/braintrust_projects.py`. Exec
 #### List All Projects
 To see all available projects in the organization:
 ```bash
-python3 scripts/braintrust_projects.py list
+python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py list
 ```
 
 This returns JSON with all projects including their IDs, names, and metadata. Save project IDs for use in other Braintrust skills.
@@ -63,7 +65,7 @@ This returns JSON with all projects including their IDs, names, and metadata. Sa
 #### Create a New Project
 To create a new project for organizing experiments, prompts, and datasets:
 ```bash
-python3 scripts/braintrust_projects.py create --name "My Project" --org-name "My Org"
+python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py create --name "My Project" --org-name "My Org"
 ```
 
 **Important**: Save the returned `project_id` from the response. This ID is required for creating prompts, datasets, and experiments in the `braintrust-experimentation` skill.
@@ -71,19 +73,19 @@ python3 scripts/braintrust_projects.py create --name "My Project" --org-name "My
 #### Get Project Details
 To retrieve detailed information about a specific project:
 ```bash
-python3 scripts/braintrust_projects.py get PROJECT_ID
+python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py get PROJECT_ID
 ```
 
 #### Update Project
 To update project name, description, or other metadata:
 ```bash
-python3 scripts/braintrust_projects.py update PROJECT_ID --name "Updated Name"
+python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py update PROJECT_ID --name "Updated Name"
 ```
 
 #### Delete Project
 To permanently delete a project and all its associated resources:
 ```bash
-python3 scripts/braintrust_projects.py delete PROJECT_ID
+python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py delete PROJECT_ID
 ```
 
 **Warning**: Deletion is permanent and will remove all prompts, datasets, experiments, and logs associated with the project.
