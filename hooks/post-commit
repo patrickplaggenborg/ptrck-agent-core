@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Auto-deploy .claude configuration to user directory after each commit
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Check if any files in .claude/ were changed in this commit
+if git diff-tree --no-commit-id --name-only -r HEAD | grep -q "^\.claude/"; then
+    echo ""
+    echo "📦 .claude/ files changed, deploying to user directory..."
+    "$REPO_ROOT/deploy-to-user.sh"
+fi

@@ -2,6 +2,15 @@
 
 This repository is the **source of truth** for global Claude Code configuration (skills, commands, and hooks).
 
+## First-Time Setup
+
+After cloning this repo, run:
+```bash
+./setup-hooks.sh
+```
+
+This installs the git hooks needed for automatic deployment.
+
 ## Deployment Workflow
 
 When making changes to files in `.claude/` (skills, commands, or hooks):
@@ -15,3 +24,4 @@ When making changes to files in `.claude/` (skills, commands, or hooks):
 - All other repositories will inherit these global configurations
 - The deployment script and git hook are **repo-specific** and do not get copied to `~/.claude/`
 - When creating or updating skills, commands, or hooks, remind the user that changes will be automatically deployed on the next commit
+- If you clone this repo on a new machine, remember to run `./setup-hooks.sh` first
