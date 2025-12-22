@@ -77,7 +77,7 @@ python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py get PROJEC
 ```
 
 #### Update Project
-To update project name, description, or other metadata:
+To update project name or other metadata:
 ```bash
 python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py update PROJECT_ID --name "Updated Name"
 ```

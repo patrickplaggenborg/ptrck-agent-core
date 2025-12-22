@@ -51,6 +51,15 @@ Before using this skill:
 
 **Note**: All scripts automatically load environment variables from a `.env` file in the current directory if it exists.
 
+## Tags Support
+
+Scorers support tags for organization. Tags format:
+- **JSON array**: `'["tag1", "tag2"]'` - multiple tags
+- **Single string**: `"production"` - converted to `["production"]`
+- **Empty array**: `'[]'` - clears all tags
+
+When updating, `--tags` replaces all existing tags (not a merge).
+
 ## Available Commands
 
 All tools are Python scripts in the `scripts/` directory. Execute with `python3` and appropriate arguments.
@@ -82,10 +91,21 @@ python3 .claude/skills/braintrust-scorers/scripts/braintrust_scorers.py create \
   --scorer-type python \
   --config-file scorer_config.json
 
+# Create scorer with tags
+python3 .claude/skills/braintrust-scorers/scripts/braintrust_scorers.py create \
+  --name "Production Scorer" \
+  --project-id PROJECT_ID \
+  --tags '["production", "v2"]' \
+  --description "Production scoring function"
+
 # Update a scorer
 python3 .claude/skills/braintrust-scorers/scripts/braintrust_scorers.py update SCORER_ID \
   --name "Updated Scorer Name" \
   --description "Updated description"
+
+# Update scorer tags
+python3 .claude/skills/braintrust-scorers/scripts/braintrust_scorers.py update SCORER_ID \
+  --tags '["deprecated"]'
 
 # Delete a scorer
 python3 .claude/skills/braintrust-scorers/scripts/braintrust_scorers.py delete SCORER_ID

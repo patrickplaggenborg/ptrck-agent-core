@@ -14,6 +14,17 @@ from pathlib import Path
 
 API_BASE_URL = "https://api.braintrust.dev"
 
+
+def parse_tags(tags: Optional[str]) -> Optional[list]:
+    """Parse tags from CLI argument. Returns None if no tags provided."""
+    if tags is None:
+        return None
+    try:
+        parsed = json.loads(tags)
+        return parsed if isinstance(parsed, list) else [parsed]
+    except json.JSONDecodeError:
+        return [tags] if tags else []
+
 def load_env():
     """Load environment variables from .env file if it exists"""
     env_path = Path.cwd() / ".env"
@@ -80,7 +91,7 @@ def get_prompt(prompt_id: str) -> None:
     result = make_request("GET", f"/v1/prompt/{prompt_id}")
     print(json.dumps(result, indent=2))
 
-def create_prompt(name: str, project_id: str, slug: Optional[str] = None, prompt_data: Optional[str] = None, description: Optional[str] = None) -> None:
+def create_prompt(name: str, project_id: str, slug: Optional[str] = None, prompt_data: Optional[str] = None, description: Optional[str] = None, tags: Optional[str] = None) -> None:
     """Create a new prompt"""
     # Auto-generate slug from name if not provided
     if not slug:
@@ -107,10 +118,13 @@ def create_prompt(name: str, project_id: str, slug: Optional[str] = None, prompt
     if description:
         data["description"] = description
 
+    if tags is not None:
+        data["tags"] = parse_tags(tags)
+
     result = make_request("POST", "/v1/prompt", data=data)
     print(json.dumps(result, indent=2))
 
-def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optional[str] = None, description: Optional[str] = None) -> None:
+def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optional[str] = None, description: Optional[str] = None, tags: Optional[str] = None) -> None:
     """Update an existing prompt"""
     data = {}
 
@@ -123,6 +137,9 @@ def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optio
             data["prompt_data"] = {"prompt": prompt_data}
     if description:
         data["description"] = description
+
+    if tags is not None:
+        data["tags"] = parse_tags(tags)
 
     if not data:
         print("Error: No update fields provided", file=sys.stderr)
@@ -156,6 +173,7 @@ def main():
     create_parser.add_argument("--slug", help="Prompt slug (auto-generated from name if not provided)")
     create_parser.add_argument("--prompt-data", help="Prompt data (JSON string or text)")
     create_parser.add_argument("--description", help="Prompt description")
+    create_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
 
     # Update prompt
     update_parser = subparsers.add_parser("update", help="Update a prompt")
@@ -163,6 +181,7 @@ def main():
     update_parser.add_argument("--name", help="New prompt name")
     update_parser.add_argument("--prompt-data", help="New prompt data (JSON string or text)")
     update_parser.add_argument("--description", help="New prompt description")
+    update_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
 
     # Delete prompt
     delete_parser = subparsers.add_parser("delete", help="Delete a prompt")
@@ -180,9 +199,9 @@ def main():
         elif args.command == "get":
             get_prompt(args.prompt_id)
         elif args.command == "create":
-            create_prompt(args.name, args.project_id, args.slug, args.prompt_data, args.description)
+            create_prompt(args.name, args.project_id, args.slug, args.prompt_data, args.description, args.tags)
         elif args.command == "update":
-            update_prompt(args.prompt_id, args.name, args.prompt_data, args.description)
+            update_prompt(args.prompt_id, args.name, args.prompt_data, args.description, args.tags)
         elif args.command == "delete":
             delete_prompt(args.prompt_id)
     except Exception as e:

@@ -9,7 +9,7 @@ import sys
 import json
 import argparse
 import requests
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pathlib import Path
 
 API_BASE_URL = "https://api.braintrust.dev"
@@ -64,6 +64,26 @@ def make_request(method: str, endpoint: str, data: Optional[Dict] = None, params
             print(f"Response: {e.response.text}", file=sys.stderr)
         sys.exit(1)
 
+def parse_tags(tags_str: Optional[str]) -> Optional[List[str]]:
+    """Parse tags from a string (comma-separated or JSON array)"""
+    if not tags_str:
+        return None
+
+    tags_str = tags_str.strip()
+
+    # Try to parse as JSON array first
+    if tags_str.startswith("["):
+        try:
+            tags = json.loads(tags_str)
+            if isinstance(tags, list):
+                return [str(t) for t in tags]
+        except json.JSONDecodeError:
+            pass
+
+    # Fall back to comma-separated
+    return [t.strip() for t in tags_str.split(",") if t.strip()]
+
+
 def list_experiments(project_id: Optional[str] = None, limit: int = 100) -> None:
     """List all experiments"""
     params = {"limit": limit}
@@ -114,8 +134,14 @@ def delete_experiment(experiment_id: str) -> None:
     result = make_request("DELETE", f"/v1/experiment/{experiment_id}")
     print(json.dumps(result, indent=2))
 
-def insert_events(experiment_id: str, events_file: str) -> None:
-    """Insert events into an experiment from a JSON file"""
+def insert_events(experiment_id: str, events_file: str, tags: Optional[List[str]] = None) -> None:
+    """Insert events into an experiment from a JSON file
+
+    Args:
+        experiment_id: The experiment ID to insert events into
+        events_file: Path to JSON file containing events
+        tags: Optional list of tags to apply to all events in this batch
+    """
     try:
         with open(events_file, 'r') as f:
             events = json.load(f)
@@ -123,12 +149,17 @@ def insert_events(experiment_id: str, events_file: str) -> None:
         if not isinstance(events, list):
             events = [events]
 
+        # Apply tags to all events if provided (and event doesn't already have tags)
+        if tags:
+            for event in events:
+                if "tags" not in event:
+                    event["tags"] = tags
+
         data = {
-            "experiment_id": experiment_id,
             "events": events
         }
 
-        result = make_request("POST", "/v1/experiment-insert", data=data)
+        result = make_request("POST", f"/v1/experiment/{experiment_id}/insert", data=data)
         print(json.dumps(result, indent=2))
     except FileNotFoundError:
         print(f"Error: File not found: {events_file}", file=sys.stderr)
@@ -139,12 +170,11 @@ def insert_events(experiment_id: str, events_file: str) -> None:
 
 def summarize_experiment(experiment_id: str, summarize_scores: bool = True) -> None:
     """Summarize experiment results"""
-    data = {
-        "experiment_id": experiment_id,
+    params = {
         "summarize_scores": summarize_scores
     }
 
-    result = make_request("POST", "/v1/experiment-summarize", data=data)
+    result = make_request("GET", f"/v1/experiment/{experiment_id}/summarize", params=params)
     print(json.dumps(result, indent=2))
 
 def main():
@@ -181,6 +211,7 @@ def main():
     insert_parser = subparsers.add_parser("insert", help="Insert events into an experiment")
     insert_parser.add_argument("experiment_id", help="Experiment ID")
     insert_parser.add_argument("--file", required=True, help="JSON file containing events")
+    insert_parser.add_argument("--tags", help="Tags to apply to all events (comma-separated or JSON array)")
 
     # Summarize experiment
     summarize_parser = subparsers.add_parser("summarize", help="Summarize experiment results")
@@ -205,7 +236,8 @@ def main():
         elif args.command == "delete":
             delete_experiment(args.experiment_id)
         elif args.command == "insert":
-            insert_events(args.experiment_id, args.file)
+            tags = parse_tags(args.tags) if hasattr(args, 'tags') else None
+            insert_events(args.experiment_id, args.file, tags)
         elif args.command == "summarize":
             summarize_experiment(args.experiment_id, args.summarize_scores)
     except Exception as e:
