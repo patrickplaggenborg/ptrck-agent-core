@@ -40,6 +40,15 @@ Before using this skill, ensure:
 
 **Note**: All scripts automatically load environment variables from a `.env` file in the current directory if it exists.
 
+## Tags Support
+
+Projects support tags for organization. Tags format:
+- **JSON array**: `'["tag1", "tag2"]'` - multiple tags
+- **Single string**: `"production"` - converted to `["production"]`
+- **Empty array**: `'[]'` - clears all tags
+
+When updating, `--tags` replaces all existing tags (not a merge).
+
 ## Project Management Tool
 
 The project management tool is located at `.claude/skills/braintrust-core/scripts/braintrust_projects.py`. Execute it using `python3` with appropriate commands.
@@ -68,6 +77,14 @@ To create a new project for organizing experiments, prompts, and datasets:
 python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py create --name "My Project" --org-name "My Org"
 ```
 
+Create project with tags:
+```bash
+python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py create \
+  --name "Production Project" \
+  --org-name "My Org" \
+  --tags '["production", "v2"]'
+```
+
 **Important**: Save the returned `project_id` from the response. This ID is required for creating prompts, datasets, and experiments in the `braintrust-experimentation` skill.
 
 #### Get Project Details
@@ -80,6 +97,11 @@ python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py get PROJEC
 To update project name, description, or other metadata:
 ```bash
 python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py update PROJECT_ID --name "Updated Name"
+```
+
+Update project tags:
+```bash
+python3 .claude/skills/braintrust-core/scripts/braintrust_projects.py update PROJECT_ID --tags '["deprecated"]'
 ```
 
 #### Delete Project

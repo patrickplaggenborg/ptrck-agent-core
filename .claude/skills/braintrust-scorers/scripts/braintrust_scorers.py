@@ -14,6 +14,17 @@ from pathlib import Path
 
 API_BASE_URL = "https://api.braintrust.dev"
 
+
+def parse_tags(tags: Optional[str]) -> Optional[list]:
+    """Parse tags from CLI argument. Returns None if no tags provided."""
+    if tags is None:
+        return None
+    try:
+        parsed = json.loads(tags)
+        return parsed if isinstance(parsed, list) else [parsed]
+    except json.JSONDecodeError:
+        return [tags] if tags else []
+
 def load_env():
     """Load environment variables from .env file if it exists"""
     env_path = Path.cwd() / ".env"
@@ -122,7 +133,8 @@ def create_scorer(
     project_id: str,
     description: Optional[str] = None,
     config_file: Optional[str] = None,
-    scorer_type: Optional[str] = None
+    scorer_type: Optional[str] = None,
+    tags: Optional[str] = None
 ) -> None:
     """Create a new scorer (function)"""
     data = {
@@ -149,6 +161,9 @@ def create_scorer(
     if scorer_type:
         data["score_type"] = scorer_type
 
+    if tags is not None:
+        data["tags"] = parse_tags(tags)
+
     result = make_request("POST", "/v1/function", data=data)
     print(json.dumps(result, indent=2))
 
@@ -156,7 +171,8 @@ def update_scorer(
     scorer_id: str,
     name: Optional[str] = None,
     description: Optional[str] = None,
-    config_file: Optional[str] = None
+    config_file: Optional[str] = None,
+    tags: Optional[str] = None
 ) -> None:
     """Update an existing scorer"""
     data = {}
@@ -176,6 +192,9 @@ def update_scorer(
         with open(config_path) as f:
             config_data = json.load(f)
             data.update(config_data)
+
+    if tags is not None:
+        data["tags"] = parse_tags(tags)
 
     if not data:
         print("Error: No update parameters provided", file=sys.stderr)
@@ -236,6 +255,7 @@ Examples:
     create_parser.add_argument("--description", help="Scorer description")
     create_parser.add_argument("--config-file", help="Path to JSON config file with scorer configuration")
     create_parser.add_argument("--scorer-type", help="Scorer type (python, typescript, llm)")
+    create_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
 
     # Update command
     update_parser = subparsers.add_parser("update", help="Update a scorer")
@@ -243,6 +263,7 @@ Examples:
     update_parser.add_argument("--name", help="New scorer name")
     update_parser.add_argument("--description", help="New description")
     update_parser.add_argument("--config-file", help="Path to JSON config file with updates")
+    update_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
 
     # Delete command
     delete_parser = subparsers.add_parser("delete", help="Delete a scorer")
@@ -265,14 +286,16 @@ Examples:
                 project_id=args.project_id,
                 description=args.description,
                 config_file=args.config_file,
-                scorer_type=args.scorer_type
+                scorer_type=args.scorer_type,
+                tags=args.tags
             )
         elif args.command == "update":
             update_scorer(
                 scorer_id=args.scorer_id,
                 name=args.name,
                 description=args.description,
-                config_file=args.config_file
+                config_file=args.config_file,
+                tags=args.tags
             )
         elif args.command == "delete":
             delete_scorer(args.scorer_id)

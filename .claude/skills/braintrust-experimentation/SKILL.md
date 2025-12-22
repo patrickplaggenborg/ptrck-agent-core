@@ -32,6 +32,15 @@ Before using this skill:
 
 **Note**: All scripts automatically load environment variables from a `.env` file in the current directory if it exists.
 
+## Tags Support
+
+Both prompts and datasets support tags for organization. Tags format:
+- **JSON array**: `'["tag1", "tag2"]'` - multiple tags
+- **Single string**: `"production"` - converted to `["production"]`
+- **Empty array**: `'[]'` - clears all tags
+
+When updating, `--tags` replaces all existing tags (not a merge).
+
 ## Available Tools
 
 All tools are Python scripts in the `scripts/` directory. Execute with `python3` and appropriate arguments.
@@ -76,6 +85,21 @@ python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py 
   --name "Structured Prompt" \
   --project-id PROJECT_ID \
   --prompt-data '{"prompt": "Answer about {{topic}}", "model": "gpt-4", "temperature": 0.7}'
+
+# Create with tags
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py create \
+  --name "Production Prompt" \
+  --project-id PROJECT_ID \
+  --tags '["production", "v2"]' \
+  --prompt-data "You are a helpful assistant."
+
+# Update tags (replaces existing tags)
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py update PROMPT_ID \
+  --tags '["deprecated"]'
+
+# Clear all tags
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py update PROMPT_ID \
+  --tags '[]'
 
 # Get current prompt version
 python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py get PROMPT_ID
@@ -159,6 +183,17 @@ python3 scripts/braintrust_datasets.py create \
   --name "QA Test Set" \
   --project-id PROJECT_ID \
   --description "General knowledge questions"
+
+# Create dataset with tags
+python3 scripts/braintrust_datasets.py create \
+  --name "Production Test Set" \
+  --project-id PROJECT_ID \
+  --tags '["production", "qa"]' \
+  --description "Production quality test data"
+
+# Update dataset tags
+python3 scripts/braintrust_datasets.py update DATASET_ID \
+  --tags '["archived"]'
 
 # Insert data from JSON file
 python3 scripts/braintrust_datasets.py insert DATASET_ID --file test_data.json
