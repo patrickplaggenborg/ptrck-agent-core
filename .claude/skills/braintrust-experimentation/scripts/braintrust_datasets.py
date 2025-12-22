@@ -14,17 +14,6 @@ from pathlib import Path
 
 API_BASE_URL = "https://api.braintrust.dev"
 
-
-def parse_tags(tags: Optional[str]) -> Optional[list]:
-    """Parse tags from CLI argument. Returns None if no tags provided."""
-    if tags is None:
-        return None
-    try:
-        parsed = json.loads(tags)
-        return parsed if isinstance(parsed, list) else [parsed]
-    except json.JSONDecodeError:
-        return [tags] if tags else []
-
 def load_env():
     """Load environment variables from .env file if it exists"""
     env_path = Path.cwd() / ".env"
@@ -89,7 +78,7 @@ def get_dataset(dataset_id: str) -> None:
     result = make_request("GET", f"/v1/dataset/{dataset_id}")
     print(json.dumps(result, indent=2))
 
-def create_dataset(name: str, project_id: str, description: Optional[str] = None, tags: Optional[str] = None) -> None:
+def create_dataset(name: str, project_id: str, description: Optional[str] = None) -> None:
     """Create a new dataset"""
     data = {
         "name": name,
@@ -99,13 +88,10 @@ def create_dataset(name: str, project_id: str, description: Optional[str] = None
     if description:
         data["description"] = description
 
-    if tags is not None:
-        data["tags"] = parse_tags(tags)
-
     result = make_request("POST", "/v1/dataset", data=data)
     print(json.dumps(result, indent=2))
 
-def update_dataset(dataset_id: str, name: Optional[str] = None, description: Optional[str] = None, tags: Optional[str] = None) -> None:
+def update_dataset(dataset_id: str, name: Optional[str] = None, description: Optional[str] = None) -> None:
     """Update an existing dataset"""
     data = {}
 
@@ -113,9 +99,6 @@ def update_dataset(dataset_id: str, name: Optional[str] = None, description: Opt
         data["name"] = name
     if description:
         data["description"] = description
-
-    if tags is not None:
-        data["tags"] = parse_tags(tags)
 
     if not data:
         print("Error: No update fields provided", file=sys.stderr)
@@ -183,14 +166,12 @@ def main():
     create_parser.add_argument("--name", required=True, help="Dataset name")
     create_parser.add_argument("--project-id", required=True, help="Project ID")
     create_parser.add_argument("--description", help="Dataset description")
-    create_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
 
     # Update dataset
     update_parser = subparsers.add_parser("update", help="Update a dataset")
     update_parser.add_argument("dataset_id", help="Dataset ID")
     update_parser.add_argument("--name", help="New dataset name")
     update_parser.add_argument("--description", help="New dataset description")
-    update_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
 
     # Delete dataset
     delete_parser = subparsers.add_parser("delete", help="Delete a dataset")
@@ -219,9 +200,9 @@ def main():
         elif args.command == "get":
             get_dataset(args.dataset_id)
         elif args.command == "create":
-            create_dataset(args.name, args.project_id, args.description, args.tags)
+            create_dataset(args.name, args.project_id, args.description)
         elif args.command == "update":
-            update_dataset(args.dataset_id, args.name, args.description, args.tags)
+            update_dataset(args.dataset_id, args.name, args.description)
         elif args.command == "delete":
             delete_dataset(args.dataset_id)
         elif args.command == "insert":

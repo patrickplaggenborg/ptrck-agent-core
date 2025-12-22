@@ -34,12 +34,14 @@ Before using this skill:
 
 ## Tags Support
 
-Both prompts and datasets support tags for organization. Tags format:
+Prompts support tags for organization. Tags format:
 - **JSON array**: `'["tag1", "tag2"]'` - multiple tags
 - **Single string**: `"production"` - converted to `["production"]`
 - **Empty array**: `'[]'` - clears all tags
 
 When updating, `--tags` replaces all existing tags (not a merge).
+
+**Note**: Datasets do NOT support tags - use the `metadata` field on individual records instead.
 
 ## Available Tools
 
@@ -183,17 +185,6 @@ python3 scripts/braintrust_datasets.py create \
   --name "QA Test Set" \
   --project-id PROJECT_ID \
   --description "General knowledge questions"
-
-# Create dataset with tags
-python3 scripts/braintrust_datasets.py create \
-  --name "Production Test Set" \
-  --project-id PROJECT_ID \
-  --tags '["production", "qa"]' \
-  --description "Production quality test data"
-
-# Update dataset tags
-python3 scripts/braintrust_datasets.py update DATASET_ID \
-  --tags '["archived"]'
 
 # Insert data from JSON file
 python3 scripts/braintrust_datasets.py insert DATASET_ID --file test_data.json

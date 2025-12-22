@@ -14,17 +14,6 @@ from pathlib import Path
 
 API_BASE_URL = "https://api.braintrust.dev"
 
-
-def parse_tags(tags: Optional[str]) -> Optional[list]:
-    """Parse tags from CLI argument. Returns None if no tags provided."""
-    if tags is None:
-        return None
-    try:
-        parsed = json.loads(tags)
-        return parsed if isinstance(parsed, list) else [parsed]
-    except json.JSONDecodeError:
-        return [tags] if tags else []
-
 def load_env():
     """Load environment variables from .env file if it exists"""
     env_path = Path.cwd() / ".env"
@@ -89,7 +78,7 @@ def get_project(project_id: str) -> None:
     result = make_request("GET", f"/v1/project/{project_id}")
     print(json.dumps(result, indent=2))
 
-def create_project(name: str, org_name: Optional[str] = None, tags: Optional[str] = None) -> None:
+def create_project(name: str, org_name: Optional[str] = None) -> None:
     """Create a new project"""
     data = {
         "name": name
@@ -98,21 +87,15 @@ def create_project(name: str, org_name: Optional[str] = None, tags: Optional[str
     if org_name:
         data["org_name"] = org_name
 
-    if tags is not None:
-        data["tags"] = parse_tags(tags)
-
     result = make_request("POST", "/v1/project", data=data)
     print(json.dumps(result, indent=2))
 
-def update_project(project_id: str, name: Optional[str] = None, tags: Optional[str] = None) -> None:
+def update_project(project_id: str, name: Optional[str] = None) -> None:
     """Update an existing project"""
     data = {}
 
     if name:
         data["name"] = name
-
-    if tags is not None:
-        data["tags"] = parse_tags(tags)
 
     if not data:
         print("Error: No update fields provided", file=sys.stderr)
@@ -143,13 +126,11 @@ def main():
     create_parser = subparsers.add_parser("create", help="Create a new project")
     create_parser.add_argument("--name", required=True, help="Project name")
     create_parser.add_argument("--org-name", help="Organization name")
-    create_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
 
     # Update project
     update_parser = subparsers.add_parser("update", help="Update a project")
     update_parser.add_argument("project_id", help="Project ID")
     update_parser.add_argument("--name", help="New project name")
-    update_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
 
     # Delete project
     delete_parser = subparsers.add_parser("delete", help="Delete a project")
@@ -167,9 +148,9 @@ def main():
         elif args.command == "get":
             get_project(args.project_id)
         elif args.command == "create":
-            create_project(args.name, args.org_name, args.tags)
+            create_project(args.name, args.org_name)
         elif args.command == "update":
-            update_project(args.project_id, args.name, args.tags)
+            update_project(args.project_id, args.name)
         elif args.command == "delete":
             delete_project(args.project_id)
     except Exception as e:
