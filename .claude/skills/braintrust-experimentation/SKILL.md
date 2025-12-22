@@ -11,6 +11,7 @@ Comprehensive management of prompts, datasets, and experiments for AI model test
 
 Use this skill when the user wants to:
 - Create, update, or manage AI prompts
+- Update tool definitions in prompts (function calling schemas)
 - Build and maintain test datasets
 - Create and run experiments
 - Insert test data or experiment results
@@ -40,10 +41,10 @@ All tools are Python scripts in the `scripts/` directory. Execute with `python3`
 Manage AI prompts with versioning and template support.
 
 **Commands:**
-- `list` - List all prompts (filter with `--project-id`)
+- `list` - List prompts (**WARNING**: returns ALL prompts across all projects by default; always use `--project-id` to filter to a specific project)
 - `get` - Get a specific prompt by ID
 - `create` - Create a new prompt
-- `update` - Update an existing prompt
+- `update` - Update an existing prompt (supports `--tools-file` for tool definitions)
 - `delete` - Delete a prompt
 
 **Prompt Data Format:**
@@ -51,7 +52,10 @@ Prompt data can be JSON or plain text. Plain text is automatically wrapped as `{
 
 **Common Usage:**
 ```bash
-# List prompts for a project
+# List ALL prompts across all projects (NOT RECOMMENDED - can return many results)
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py list
+
+# List prompts for a specific project (RECOMMENDED - always use this)
 python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py list --project-id PROJECT_ID
 
 # Create a simple prompt (slug auto-generated from name)
@@ -76,13 +80,47 @@ python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py 
 # Get current prompt version
 python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py get PROMPT_ID
 
-# Update prompt
+# Update prompt text (creates a new version)
 python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py update PROMPT_ID \
   --prompt-data "You are a helpful and friendly assistant."
+
+# Update tool definitions from a JSON schema file (creates a new version)
+python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py update PROMPT_ID \
+  --tools-file path/to/schema.json
 
 # Delete prompt
 python3 .claude/skills/braintrust-experimentation/scripts/braintrust_prompts.py delete PROMPT_ID
 ```
+
+**Updating Tool Definitions:**
+
+The `--tools-file` option allows you to update the tool/function definitions in a prompt. The file should contain a JSON array in OpenAI function calling format.
+
+**Note:** The `update` command uses PUT (not PATCH) to create a new version of the prompt, which appears in the Braintrust activity feed. This ensures proper version tracking.
+
+```json
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "my_function",
+      "description": "Description of the function",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "field_name": {
+            "type": "string",
+            "description": "Field description"
+          }
+        },
+        "required": []
+      }
+    }
+  }
+]
+```
+
+This is useful for updating schema descriptions in prompts that use function calling.
 
 ### 2. Dataset Management (`braintrust_datasets.py`)
 
@@ -212,6 +250,12 @@ python3 scripts/braintrust_experiments.py get EXPERIMENT_ID
 4. Retrieve current version with `braintrust_prompts.py get`
 5. Repeat until satisfied
 
+### Tool Definition Update Workflow
+1. Edit your schema JSON file locally
+2. Update the prompt with `braintrust_prompts.py update --tools-file schema.json`
+3. Run experiment to test the updated tool definition
+4. Iterate based on results
+
 ### Dataset Creation Workflow
 1. Prepare test data in JSON format (see format above)
 2. Create dataset with `braintrust_datasets.py create`
@@ -270,6 +314,7 @@ When errors occur:
 - **`braintrust-core`**: Get project IDs before creating resources
 - **`braintrust-evaluation`**: Run evaluations on experiments
 - **`braintrust-logs`**: Monitor production usage after experimentation
+- **`push-schema`**: Use this skill's `--tools-file` to push local schemas to Braintrust
 
 ## Reference Documentation
 
