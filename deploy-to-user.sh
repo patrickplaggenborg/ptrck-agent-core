@@ -3,7 +3,9 @@
 # Deploy .claude configuration to user directory
 # This syncs skills, commands, and hooks from this repo to ~/.claude/
 
-SOURCE_DIR="/Users/patrick/git/ptrck/ptrck-agent-core/.claude"
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_DIR="$SCRIPT_DIR/.claude"
 TARGET_DIR="$HOME/.claude"
 
 echo "🚀 Deploying .claude configuration to user directory..."
