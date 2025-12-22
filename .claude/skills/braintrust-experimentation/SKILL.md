@@ -34,6 +34,7 @@ Before using this skill:
 
 ## Tags Support
 
+### Prompt-Level Tags
 Prompts support tags for organization. Tags format:
 - **JSON array**: `'["tag1", "tag2"]'` - multiple tags
 - **Single string**: `"production"` - converted to `["production"]`
@@ -41,7 +42,17 @@ Prompts support tags for organization. Tags format:
 
 When updating, `--tags` replaces all existing tags (not a merge).
 
-**Note**: Datasets do NOT support tags - use the `metadata` field on individual records instead.
+### Record-Level Tags (Datasets & Experiments)
+Individual records in datasets and experiments can be tagged. This is useful for:
+- Categorizing test cases (e.g., "edge-case", "regression")
+- Marking records for filtering (e.g., "needs-review", "verified")
+- Organizing experiment results (e.g., "baseline", "improved")
+
+Tags can be applied:
+1. **Via CLI `--tags` flag**: Applies to all events in the batch
+2. **In the JSON file**: Each event can have its own `tags` array
+
+**Note**: Dataset and experiment *entities* do NOT support tags at the container level. Only individual records within them support tags.
 
 ## Available Tools
 
@@ -162,18 +173,20 @@ Manage test datasets with CRUD operations and data insertion.
 - `fetch` - Fetch records from a dataset (supports `--limit`, `--cursor`)
 
 **Dataset Event Format:**
-JSON array with objects containing `input`, `expected`, and optional `metadata`:
+JSON array with objects containing `input`, `expected`, optional `metadata`, and optional `tags`:
 ```json
 [
   {
     "input": "What is the capital of France?",
     "expected": "Paris",
-    "metadata": {"category": "geography", "difficulty": "easy"}
+    "metadata": {"category": "geography", "difficulty": "easy"},
+    "tags": ["geography", "easy"]
   },
   {
     "input": "What is 2+2?",
     "expected": "4",
-    "metadata": {"category": "math", "difficulty": "easy"}
+    "metadata": {"category": "math", "difficulty": "easy"},
+    "tags": ["math", "regression-test"]
   }
 ]
 ```
@@ -188,6 +201,12 @@ python3 scripts/braintrust_datasets.py create \
 
 # Insert data from JSON file
 python3 scripts/braintrust_datasets.py insert DATASET_ID --file test_data.json
+
+# Insert data with tags applied to all events
+python3 scripts/braintrust_datasets.py insert DATASET_ID --file test_data.json --tags "batch-1,initial"
+
+# Insert data with JSON array tags
+python3 scripts/braintrust_datasets.py insert DATASET_ID --file test_data.json --tags '["verified", "production"]'
 
 # Fetch records to verify
 python3 scripts/braintrust_datasets.py fetch DATASET_ID --limit 50
@@ -215,7 +234,7 @@ Manage experiments with full lifecycle support including results insertion and s
 - `summarize` - Get summary statistics for an experiment
 
 **Experiment Event Format:**
-JSON array with objects containing `input`, `output`, `expected`, `scores`, and optional `metadata`:
+JSON array with objects containing `input`, `output`, `expected`, `scores`, optional `metadata`, and optional `tags`:
 ```json
 [
   {
@@ -229,7 +248,8 @@ JSON array with objects containing `input`, `output`, `expected`, `scores`, and 
     "metadata": {
       "latency_ms": 123,
       "model": "gpt-4"
-    }
+    },
+    "tags": ["baseline", "correct"]
   },
   {
     "input": "What is 2+2?",
@@ -240,7 +260,8 @@ JSON array with objects containing `input`, `output`, `expected`, `scores`, and 
     },
     "metadata": {
       "latency_ms": 98
-    }
+    },
+    "tags": ["math", "correct"]
   }
 ]
 ```
@@ -256,6 +277,12 @@ python3 scripts/braintrust_experiments.py create \
 
 # Insert experiment results
 python3 scripts/braintrust_experiments.py insert EXPERIMENT_ID --file results.json
+
+# Insert results with tags applied to all events
+python3 scripts/braintrust_experiments.py insert EXPERIMENT_ID --file results.json --tags "run-1,baseline"
+
+# Insert results with JSON array tags
+python3 scripts/braintrust_experiments.py insert EXPERIMENT_ID --file results.json --tags '["production", "v2"]'
 
 # Summarize results
 python3 scripts/braintrust_experiments.py summarize EXPERIMENT_ID
