@@ -127,9 +127,32 @@ def create_prompt(name: str, project_id: str, slug: Optional[str] = None, prompt
     print(json.dumps(result, indent=2))
 
 def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optional[str] = None, description: Optional[str] = None, tags: Optional[str] = None, tools_file: Optional[str] = None) -> None:
-    """Update an existing prompt"""
-    data = {}
+    """Update an existing prompt by creating a new version.
 
+    Uses POST with the same slug to create a new version. Fetches existing
+    prompt first to preserve fields we're not updating (system message, model, etc.).
+    """
+    # Fetch existing prompt to use as base
+    existing = make_request("GET", f"/v1/prompt/{prompt_id}")
+
+    # Start with required fields from existing prompt
+    data = {
+        "name": existing.get("name"),
+        "slug": existing.get("slug"),
+        "project_id": existing.get("project_id"),
+    }
+
+    # Preserve existing prompt_data (system message, model, tools, etc.)
+    if existing.get("prompt_data"):
+        data["prompt_data"] = existing["prompt_data"]
+
+    # Preserve existing description and tags
+    if existing.get("description"):
+        data["description"] = existing["description"]
+    if existing.get("tags"):
+        data["tags"] = existing["tags"]
+
+    # Apply updates - these override existing values
     if name:
         data["name"] = name
     if prompt_data:
@@ -139,7 +162,6 @@ def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optio
             data["prompt_data"] = {"prompt": prompt_data}
     if description:
         data["description"] = description
-
     if tags is not None:
         data["tags"] = parse_tags(tags)
 
@@ -150,15 +172,15 @@ def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optio
             sys.exit(1)
         with open(tools_path) as f:
             tools_data = json.load(f)
+        # Update tools in prompt_data.prompt.tools (stored as stringified JSON)
         if "prompt_data" not in data:
             data["prompt_data"] = {}
-        data["prompt_data"]["tools"] = tools_data
+        if "prompt" not in data["prompt_data"]:
+            data["prompt_data"]["prompt"] = {}
+        data["prompt_data"]["prompt"]["tools"] = json.dumps(tools_data)
 
-    if not data:
-        print("Error: No update fields provided", file=sys.stderr)
-        sys.exit(1)
-
-    result = make_request("PUT", f"/v1/prompt/{prompt_id}", data=data)
+    # POST with same slug creates a new version
+    result = make_request("POST", "/v1/prompt", data=data)
     print(json.dumps(result, indent=2))
 
 def delete_prompt(prompt_id: str) -> None:
