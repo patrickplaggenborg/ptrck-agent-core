@@ -64,6 +64,8 @@ def make_request(method: str, endpoint: str, data: Optional[Dict] = None, params
             response = requests.post(url, headers=headers, json=data)
         elif method == "PATCH":
             response = requests.patch(url, headers=headers, json=data)
+        elif method == "PUT":
+            response = requests.put(url, headers=headers, json=data)
         elif method == "DELETE":
             response = requests.delete(url, headers=headers)
         else:
@@ -124,7 +126,7 @@ def create_prompt(name: str, project_id: str, slug: Optional[str] = None, prompt
     result = make_request("POST", "/v1/prompt", data=data)
     print(json.dumps(result, indent=2))
 
-def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optional[str] = None, description: Optional[str] = None, tags: Optional[str] = None) -> None:
+def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optional[str] = None, description: Optional[str] = None, tags: Optional[str] = None, tools_file: Optional[str] = None) -> None:
     """Update an existing prompt"""
     data = {}
 
@@ -141,11 +143,22 @@ def update_prompt(prompt_id: str, name: Optional[str] = None, prompt_data: Optio
     if tags is not None:
         data["tags"] = parse_tags(tags)
 
+    if tools_file:
+        tools_path = Path(tools_file)
+        if not tools_path.exists():
+            print(f"Error: Tools file not found: {tools_file}", file=sys.stderr)
+            sys.exit(1)
+        with open(tools_path) as f:
+            tools_data = json.load(f)
+        if "prompt_data" not in data:
+            data["prompt_data"] = {}
+        data["prompt_data"]["tools"] = tools_data
+
     if not data:
         print("Error: No update fields provided", file=sys.stderr)
         sys.exit(1)
 
-    result = make_request("PATCH", f"/v1/prompt/{prompt_id}", data=data)
+    result = make_request("PUT", f"/v1/prompt/{prompt_id}", data=data)
     print(json.dumps(result, indent=2))
 
 def delete_prompt(prompt_id: str) -> None:
@@ -182,6 +195,7 @@ def main():
     update_parser.add_argument("--prompt-data", help="New prompt data (JSON string or text)")
     update_parser.add_argument("--description", help="New prompt description")
     update_parser.add_argument("--tags", help="Tags as JSON array '[\"tag1\", \"tag2\"]' or single string")
+    update_parser.add_argument("--tools-file", help="Path to JSON file containing tool definitions (OpenAI function calling format)")
 
     # Delete prompt
     delete_parser = subparsers.add_parser("delete", help="Delete a prompt")
@@ -201,7 +215,7 @@ def main():
         elif args.command == "create":
             create_prompt(args.name, args.project_id, args.slug, args.prompt_data, args.description, args.tags)
         elif args.command == "update":
-            update_prompt(args.prompt_id, args.name, args.prompt_data, args.description, args.tags)
+            update_prompt(args.prompt_id, args.name, args.prompt_data, args.description, args.tags, args.tools_file)
         elif args.command == "delete":
             delete_prompt(args.prompt_id)
     except Exception as e:
