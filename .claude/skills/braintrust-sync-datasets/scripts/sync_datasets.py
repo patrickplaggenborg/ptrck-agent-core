@@ -109,10 +109,12 @@ def main():
             "entries": entries,
             "entry_map": {}  # input_key -> entry
         }
-        # Build entry map
+        # Build entry map - keep only the newest entry for each input
         for entry in entries:
             input_key = serialize_input(entry.get("input"))
-            datasets[ds_id]["entry_map"][input_key] = entry
+            existing = datasets[ds_id]["entry_map"].get(input_key)
+            if existing is None or entry.get("created", "") > existing.get("created", ""):
+                datasets[ds_id]["entry_map"][input_key] = entry
 
     if not args.json:
         print(f"Syncing {len(datasets)} datasets...")
