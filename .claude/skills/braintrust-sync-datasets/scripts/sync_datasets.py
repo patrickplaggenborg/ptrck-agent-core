@@ -10,13 +10,28 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Any
 
 import requests
 
 
+def load_env():
+    """Load environment variables from .env file if it exists"""
+    env_path = Path.cwd() / ".env"
+    if env_path.exists():
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    if key not in os.environ:
+                        os.environ[key] = value
+
+
 def get_api_key() -> str:
     """Get Braintrust API key from environment."""
+    load_env()
     api_key = os.environ.get("BRAINTRUST_API_KEY")
     if not api_key:
         print("Error: BRAINTRUST_API_KEY environment variable not set", file=sys.stderr)
