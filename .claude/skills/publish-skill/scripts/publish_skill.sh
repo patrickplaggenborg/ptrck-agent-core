@@ -81,6 +81,17 @@ else
     USER_SUCCESS=false
 fi
 
+# Remove skill from current workspace
+if [ "$GIT_SUCCESS" = true ] && [ "$USER_SUCCESS" = true ]; then
+    echo "Removing skill from current workspace..."
+    rm -rf "$SKILL_SOURCE"
+    echo -e "${GREEN}Removed $SKILL_SOURCE${NC}"
+    CLEANUP_SUCCESS=true
+else
+    echo -e "${YELLOW}Skipping cleanup due to previous failures${NC}"
+    CLEANUP_SUCCESS=false
+fi
+
 # Summary
 echo ""
 echo "=== Summary ==="
@@ -94,6 +105,12 @@ if [ "$USER_SUCCESS" = true ]; then
     echo -e "${GREEN}User folder: Success${NC}"
 else
     echo -e "${RED}User folder: Failed${NC}"
+fi
+
+if [ "$CLEANUP_SUCCESS" = true ]; then
+    echo -e "${GREEN}Workspace cleanup: Success${NC}"
+else
+    echo -e "${YELLOW}Workspace cleanup: Skipped${NC}"
 fi
 
 if [ "$GIT_SUCCESS" = true ] && [ "$USER_SUCCESS" = true ]; then
