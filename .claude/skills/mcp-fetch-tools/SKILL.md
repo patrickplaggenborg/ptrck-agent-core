@@ -1,5 +1,5 @@
 ---
-name: fetch-mcp-tools
+name: mcp-fetch-tools
 description: Fetch tool listings from MCP servers and generate OpenAI-compatible JSON configs. This skill should be used when needing to discover tools available on an MCP server, export MCP tools for use in Braintrust or other platforms, or document an MCP server's capabilities.
 ---
 
@@ -21,7 +21,7 @@ This skill fetches tool definitions from MCP (Model Context Protocol) servers vi
 Run the script with an MCP server URL:
 
 ```bash
-python3 .claude/skills/fetch-mcp-tools/scripts/fetch_mcp_tools.py <mcp-url>
+python3 .claude/skills/mcp-fetch-tools/scripts/fetch_mcp_tools.py <mcp-url>
 ```
 
 ### Arguments
@@ -48,10 +48,10 @@ mcp-tools/
 
 ```bash
 # Fetch tools from an MCP server
-python3 .claude/skills/fetch-mcp-tools/scripts/fetch_mcp_tools.py https://wbmcp.elmar.io/mcp
+python3 .claude/skills/mcp-fetch-tools/scripts/fetch_mcp_tools.py https://wbmcp.elmar.io/mcp
 
 # Specify custom output directory
-python3 .claude/skills/fetch-mcp-tools/scripts/fetch_mcp_tools.py https://wbmcp.elmar.io/mcp --output-dir ./my-output/
+python3 .claude/skills/mcp-fetch-tools/scripts/fetch_mcp_tools.py https://wbmcp.elmar.io/mcp --output-dir ./my-output/
 ```
 
 ## Output Formats

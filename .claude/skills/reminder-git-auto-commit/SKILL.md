@@ -1,5 +1,5 @@
 ---
-name: git-auto-commit
+name: reminder-git-auto-commit
 description: Automatically commit changes to git with descriptive commit messages and sync with remote after completing tasks. This skill should be used proactively after making changes to files, ensuring all work is properly version controlled and pushed to the remote repository.
 ---
 
