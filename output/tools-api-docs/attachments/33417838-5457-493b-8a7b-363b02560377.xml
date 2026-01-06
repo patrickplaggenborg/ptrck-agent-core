@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<responsePricing xmlns="http://www.mondial-assistance.com/ecommerce/schema/">
+  <productsAvailable>
+    <productVariant id="AV">
+      <productCode>AV</productCode>
+      <variantCode>
+      </variantCode>
+    </productVariant>
+    <label>Annuleringsverzekering Volledig</label>
+    <description>
+    </description>
+    <productURL>http://partner.magroup-webservice.com/VDC/NL/NL/VDC2_NL_nl_TCs.pdf</productURL>
+    <premiumProduct currency="EUR">13.56</premiumProduct>
+    <travellers>
+      <item class="adult">
+        <number>1</number>
+        <individualPremium>13.56</individualPremium>
+      </item>
+    </travellers>
+  </productsAvailable>
+  <productsAvailable>
+    <productVariant id="RV-EUU">
+      <productCode>RV</productCode>
+      <variantCode>EUU</variantCode>
+    </productVariant>
+    <label>Reisverzekering Combinatie B</label>
+    <description>
+    </description>
+    <productURL>http://partner.magroup-webservice.com/VDC/NL/NL/VDC_NL_nl_TCs.pdf</productURL>
+    <premiumProduct currency="EUR">7.40</premiumProduct>
+    <travellers>
+      <item class="adult">
+        <number>1</number>
+        <individualPremium>7.4</individualPremium>
+      </item>
+    </travellers>
+  </productsAvailable>
+</responsePricing>
