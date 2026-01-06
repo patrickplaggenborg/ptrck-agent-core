@@ -1,5 +1,5 @@
 ---
-name: atlassian-jira-readonly
+name: jira-readonly
 description: Read-only Jira access via CLI. Provides search and view operations only - no modifications. This skill should be used when users need to query Jira like "search for open bugs", "show me issue PROJ-123", or "list active sprints".
 ---
 
@@ -14,7 +14,7 @@ Use this skill when the user wants to:
 - View issue details
 - List sprints
 
-For write operations (create, update, delete, comment, transition), use the full `atlassian-jira` skill instead.
+For write operations (create, update, delete, comment, transition), use the full `jira` skill instead.
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ For write operations (create, update, delete, comment, transition), use the full
 
 ## Jira Tool
 
-The Jira tool is located at `.claude/skills/atlassian-jira-readonly/scripts/jira_cli.py`. Execute it using `python3` with appropriate commands.
+The Jira tool is located at `.claude/skills/jira-readonly/scripts/jira_cli.py`. Execute it using `python3` with appropriate commands.
 
 ### Available Commands
 
@@ -50,20 +50,20 @@ The Jira tool is located at `.claude/skills/atlassian-jira-readonly/scripts/jira
 
 #### Search Issues
 ```bash
-python3 .claude/skills/atlassian-jira-readonly/scripts/jira_cli.py search "project = MYPROJ AND status = 'In Progress'"
-python3 .claude/skills/atlassian-jira-readonly/scripts/jira_cli.py search "assignee = currentUser() AND sprint in openSprints()"
-python3 .claude/skills/atlassian-jira-readonly/scripts/jira_cli.py search "created >= -7d" --limit 20
+python3 .claude/skills/jira-readonly/scripts/jira_cli.py search "project = MYPROJ AND status = 'In Progress'"
+python3 .claude/skills/jira-readonly/scripts/jira_cli.py search "assignee = currentUser() AND sprint in openSprints()"
+python3 .claude/skills/jira-readonly/scripts/jira_cli.py search "created >= -7d" --limit 20
 ```
 
 #### View Issue Details
 ```bash
-python3 .claude/skills/atlassian-jira-readonly/scripts/jira_cli.py get PROJ-123
+python3 .claude/skills/jira-readonly/scripts/jira_cli.py get PROJ-123
 ```
 
 #### List Sprints
 ```bash
-python3 .claude/skills/atlassian-jira-readonly/scripts/jira_cli.py sprints --board 123
-python3 .claude/skills/atlassian-jira-readonly/scripts/jira_cli.py sprints --board 123 --state active
+python3 .claude/skills/jira-readonly/scripts/jira_cli.py sprints --board 123
+python3 .claude/skills/jira-readonly/scripts/jira_cli.py sprints --board 123 --state active
 ```
 
 ## Output Format
