@@ -1,5 +1,5 @@
 ---
-name: atlassian-confluence-readonly
+name: confluence-readonly
 description: Read-only Confluence access via CLI. Provides search and view operations only - no modifications. This skill should be used when users need to query Confluence like "search for documentation", "show me page 12345", or "list Confluence spaces".
 ---
 
@@ -35,7 +35,7 @@ For write operations (create, update, delete), use the full `atlassian-confluenc
 
 ## Confluence Tool
 
-The Confluence tool is located at `.claude/skills/atlassian-confluence-readonly/scripts/confluence_cli.py`. Execute it using `python3` with appropriate commands.
+The Confluence tool is located at `.claude/skills/confluence-readonly/scripts/confluence_cli.py`. Execute it using `python3` with appropriate commands.
 
 ### Available Commands
 
@@ -49,18 +49,18 @@ The Confluence tool is located at `.claude/skills/atlassian-confluence-readonly/
 
 #### Search Pages
 ```bash
-python3 .claude/skills/atlassian-confluence-readonly/scripts/confluence_cli.py search "project documentation"
-python3 .claude/skills/atlassian-confluence-readonly/scripts/confluence_cli.py search "meeting notes" --space DEV
+python3 .claude/skills/confluence-readonly/scripts/confluence_cli.py search "project documentation"
+python3 .claude/skills/confluence-readonly/scripts/confluence_cli.py search "meeting notes" --space DEV
 ```
 
 #### View Page Content
 ```bash
-python3 .claude/skills/atlassian-confluence-readonly/scripts/confluence_cli.py get 12345
+python3 .claude/skills/confluence-readonly/scripts/confluence_cli.py get 12345
 ```
 
 #### List Spaces
 ```bash
-python3 .claude/skills/atlassian-confluence-readonly/scripts/confluence_cli.py spaces
+python3 .claude/skills/confluence-readonly/scripts/confluence_cli.py spaces
 ```
 
 ## Output Format
