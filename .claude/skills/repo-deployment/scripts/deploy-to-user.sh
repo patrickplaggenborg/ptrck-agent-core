@@ -3,19 +3,20 @@
 # Deploy .claude configuration to user directory
 # This syncs skills, commands, and hooks from this repo to ~/.claude/
 
-# Get the directory where this script is located
+# Get the repo root (this script lives in .claude/skills/repo-deployment/scripts/)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE_DIR="$SCRIPT_DIR/.claude"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+SOURCE_DIR="$REPO_ROOT/.claude"
 TARGET_DIR="$HOME/.claude"
 
-echo "🚀 Deploying .claude configuration to user directory..."
+echo "Deploying .claude configuration to user directory..."
 
 # Sync skills, commands, and hooks
 rsync -av --delete "$SOURCE_DIR/skills/" "$TARGET_DIR/skills/"
 rsync -av --delete "$SOURCE_DIR/commands/" "$TARGET_DIR/commands/"
 rsync -av --delete "$SOURCE_DIR/hooks/" "$TARGET_DIR/hooks/"
 
-echo "✅ Deployment complete!"
+echo "Deployment complete!"
 echo ""
 echo "Deployed:"
 echo "  - skills"
