@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<subscription xmlns="http://www.mondial-assistance.com/ecommerce/schema/">
+  <requestValues>
+    <securityKey>3ed9b2dfa375e22aab08e8e3bad2a152</securityKey>
+    <partnerName>VDC</partnerName>
+    <country>NL</country>
+    <issueDate>24/01/2017</issueDate>
+    <salesOrigin type="Integrated">
+    </salesOrigin>
+    <language>nl</language>
+  </requestValues>
+  <travelDescription>
+    <startDate>25/01/2017</startDate>
+    <endDate>28/01/2017</endDate>
+    <travelType>RoundTrip</travelType>
+    <originLocation>NL</originLocation>
+    <destinationLocation>FR</destinationLocation>
+    <totalTravelPrice currency="EUR">200.0</totalTravelPrice>
+  </travelDescription>
+  <productVariant id="AV"/>
+  <contractHolder personId="1">
+    <email>frederic.marceau@allianz-assistance.com</email>
+    <address>75, rue de Paris</address>
+    <zipcode>75009</zipcode>
+    <town>Paris</town>
+    <country>FR</country>
+    <title>Mr</title>
+    <surname>Marceau</surname>
+    <firstname>Frederic</firstname>
+  </contractHolder>
+  <insuredPerson id="1">
+    <title>Mr</title>
+    <surname>Marceau</surname>
+    <firstname>Frederic</firstname>
+    <dob>10/08/1959</dob>
+  </insuredPerson>
+  <totalPaidPremium currency="EUR">13.56</totalPaidPremium>
+  <confirmationEmail>frederic.marceau@allianz-assistance.com</confirmationEmail>
+  <confirmationMessaging>true</confirmationMessaging>
+  <paymentMessaging>false</paymentMessaging>
+</subscription>

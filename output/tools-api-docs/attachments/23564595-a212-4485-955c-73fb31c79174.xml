@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<requestPricing xmlns="http://www.mondial-assistance.com/ecommerce/schema/">
+  <adminValues>
+    <securityKey>3ed9b2dfa375e22aab08e8e3bad2a152</securityKey>
+    <partnerName>VDC</partnerName>
+    <country>NL</country>
+    <issueDate>24/01/2017</issueDate>
+    <salesOrigin type="Integrated">String</salesOrigin>
+    <language>nl</language>
+  </adminValues>
+  <travelDescription>
+    <startDate>25/01/2017</startDate>
+    <endDate>28/01/2017</endDate>
+    <travelType>RoundTrip</travelType>
+    <originLocation>NL</originLocation>
+    <destinationLocation>FR</destinationLocation>
+    <totalTravelPrice currency="EUR">200.0</totalTravelPrice>
+  </travelDescription>
+  <travellers>
+    <item class="adult">
+      <number>1</number>
+    </item>
+  </travellers>
+</requestPricing>
