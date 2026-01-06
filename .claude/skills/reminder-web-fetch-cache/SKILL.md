@@ -1,5 +1,5 @@
 ---
-name: web-fetch-cache-reminder
+name: reminder-web-fetch-cache
 description: Reminder about web page caching when using WebFetch. This skill should be used proactively whenever fetching or browsing web pages, especially when checking for recently updated content or verifying changes on a page.
 ---
 

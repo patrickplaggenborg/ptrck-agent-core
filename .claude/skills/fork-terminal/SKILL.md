@@ -1,5 +1,5 @@
 ---
-name: Fork Terminal Skill
+name: fork-terminal
 description: Fork a terminal session to a new terminal window. Use this when the user requests 'fork terminal' or 'create a new terminal' or 'new terminal: <command>'.
 ---
 
@@ -22,16 +22,16 @@ ENABLE_CLAUDE_CODE: true
 ## Workflow
 
 1. Understand the users request 
-2. READ `.claude/skills/fork_terminal/tools/fork_terminal.py` to understand our tooling.
+2. READ `.claude/skills/fork-terminal/tools/fork_terminal.py` to understand our tooling.
 3. Follow the `Cookbook` to determine which tool to use.
-4. Execute the `.claude/skills/fork_terminal/tools/fork_terminal.py: fork_terminal(command: str)` tool.
+4. Execute the `.claude/skills/fork-terminal/tools/fork_terminal.py: fork_terminal(command: str)` tool.
 
 ## Cookbook
 
 ### Raw CLI Commands
 
 - IF the user requests a non-agentic coding tool.
-- THEN: Read and execute: `.claude/skills/fork_terminal/cookbook/cli-command.md`
+- THEN: Read and execute: `.claude/skills/fork-terminal/cookbook/cli-command.md`
 - EXAMPLES:
 - "Create a new terminal to <xyz> with ffmpeg"
 - "Create a new terminal to <xyz> with curl"
