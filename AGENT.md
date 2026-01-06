@@ -25,3 +25,11 @@ When making changes to files in `.claude/` (skills, commands, or hooks):
 - The deployment script and git hook are **repo-specific** and do not get copied to `~/.claude/`
 - When creating or updating skills, commands, or hooks, remind the user that changes will be automatically deployed on the next commit
 - If you clone this repo on a new machine, remember to run `./setup-hooks.sh` first
+
+## Output Folder
+
+The `/output/` folder is for storing artifacts from quick, ad-hoc tasks that don't have a defined project scope.
+
+- **Organization**: Create subdirectories by task/project name (e.g., `output/api-research/`, `output/data-migration-script/`)
+- **Committed to git**: This folder is tracked, not ignored
+- **Cleanup**: Manual cleanup when instructed by the user
