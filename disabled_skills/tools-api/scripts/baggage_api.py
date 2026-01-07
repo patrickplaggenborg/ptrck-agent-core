@@ -113,8 +113,9 @@ def get_hand_baggage(carrier: str, brand: str | None = None, env: str = "prod") 
 
 def main():
     parser = argparse.ArgumentParser(description="Elmar Tools Baggage API")
-    parser.add_argument("--env", choices=["prod", "acc", "dev"], default="prod",
-                        help="Environment (default: prod)")
+    default_env = os.environ.get("ELMAR_TOOLS_API_ENV", "prod")
+    parser.add_argument("--env", choices=["prod", "acc", "dev"], default=default_env,
+                        help=f"Environment (default: {default_env})")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 

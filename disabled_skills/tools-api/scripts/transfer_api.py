@@ -107,8 +107,9 @@ def check_multiple_transfers(
 
 def main():
     parser = argparse.ArgumentParser(description="Elmar Tools Transfer API")
-    parser.add_argument("--env", choices=["prod", "acc", "dev"], default="prod",
-                        help="Environment (default: prod)")
+    default_env = os.environ.get("ELMAR_TOOLS_API_ENV", "prod")
+    parser.add_argument("--env", choices=["prod", "acc", "dev"], default=default_env,
+                        help=f"Environment (default: {default_env})")
     parser.add_argument("--departure-date", help="Departure date for temporal transfer rules")
 
     # Single product check

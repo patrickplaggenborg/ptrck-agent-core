@@ -70,8 +70,9 @@ def get_hotel_offers(
 
 def main():
     parser = argparse.ArgumentParser(description="Elmar Tools Hotels API")
-    parser.add_argument("--env", choices=["prod", "acc", "dev"], default="prod",
-                        help="Environment (default: prod)")
+    default_env = os.environ.get("ELMAR_TOOLS_API_ENV", "prod")
+    parser.add_argument("--env", choices=["prod", "acc", "dev"], default=default_env,
+                        help=f"Environment (default: {default_env})")
     parser.add_argument("--booking-id", required=True,
                         help="Booking ID (UUID for internal, or external system ID)")
     parser.add_argument("--system", choices=["zeus"],
