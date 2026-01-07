@@ -60,8 +60,9 @@ def get_customer(customer_id: str, env: str = "prod") -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Elmar Tools Customer API")
-    parser.add_argument("--env", choices=["prod", "acc", "dev"], default="prod",
-                        help="Environment (default: prod)")
+    default_env = os.environ.get("ELMAR_TOOLS_API_ENV", "prod")
+    parser.add_argument("--env", choices=["prod", "acc", "dev"], default=default_env,
+                        help=f"Environment (default: {default_env})")
     parser.add_argument("--id", required=True,
                         help="Customer ID (UUID) or customer number (e.g., C001219087)")
 

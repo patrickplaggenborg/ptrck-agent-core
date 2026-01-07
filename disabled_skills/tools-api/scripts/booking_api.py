@@ -264,8 +264,9 @@ def search_parking(booking_id: str, campaign: str | None = None, env: str = "pro
 
 def main():
     parser = argparse.ArgumentParser(description="Elmar Tools Booking API")
-    parser.add_argument("--env", choices=["prod", "acc", "dev"], default="prod",
-                        help="Environment (default: prod)")
+    default_env = os.environ.get("ELMAR_TOOLS_API_ENV", "prod")
+    parser.add_argument("--env", choices=["prod", "acc", "dev"], default=default_env,
+                        help=f"Environment (default: {default_env})")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
