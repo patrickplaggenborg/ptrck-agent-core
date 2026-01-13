@@ -29,7 +29,7 @@ def get_headers() -> dict:
         print(json.dumps({"error": "ELMAR_TOOLS_API_KEY environment variable not set"}))
         sys.exit(1)
 
-    return {"Authorization": f"Bearer {api_key}"}
+    return {"X-Api-Key": api_key}
 
 
 def make_request(url: str, headers: dict) -> dict:
