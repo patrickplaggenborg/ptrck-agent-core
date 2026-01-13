@@ -19,15 +19,17 @@ if [ ! -f "$SETTINGS_FILE" ]; then
 fi
 
 # Define the hook configuration
+# Uses Bash(git commit*) matcher to filter at Claude Code level
+# See: https://docs.anthropic.com/en/docs/claude-code/hooks
 HOOK_CONFIG='{
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash(git commit*)",
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | jq -r '\''.command'\'' | grep -qE '\''^git commit'\''; then ~/.claude/hooks/precommit.sh; fi",
+            "command": "~/.claude/hooks/precommit.sh",
             "timeout": 300
           }
         ]
