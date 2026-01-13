@@ -19,6 +19,8 @@ if [ ! -f "$SETTINGS_FILE" ]; then
 fi
 
 # Define the hook configuration
+# Uses Bash matcher - script reads stdin JSON and filters for git commit
+# This catches all patterns including "git add && git commit"
 HOOK_CONFIG='{
   "hooks": {
     "PreToolUse": [
@@ -27,7 +29,7 @@ HOOK_CONFIG='{
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | jq -r '\''.command'\'' | grep -qE '\''^git commit'\''; then ~/.claude/hooks/precommit.sh; fi",
+            "command": "~/.claude/hooks/precommit.sh",
             "timeout": 300
           }
         ]

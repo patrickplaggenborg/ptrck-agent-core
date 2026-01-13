@@ -1,30 +1,22 @@
 #!/usr/bin/env bash
 
 # Pre-commit hook for Claude Code
-# Auto-detects and runs lint/test commands before git commits
-# Exits 0 (success) if no lint/test configured, so commits still work
+# Reads stdin JSON and only runs lint/test for git commit commands
+# Exits silently for non-commit commands (~10ms overhead)
+
+COMMAND=$(cat | jq -r '.tool_input.command // empty' 2>/dev/null)
+
+# Exit silently if not a git commit
+[[ ! "$COMMAND" =~ git\ commit ]] && exit 0
+
+echo "[precommit] Running checks before commit..."
 
 if [ -f "package.json" ]; then
-  # Node.js project - check if scripts exist
-  if grep -q '"lint"' package.json 2>/dev/null; then
-    echo "Running npm run lint..."
-    npm run lint || exit 1
-  fi
-  if grep -q '"test"' package.json 2>/dev/null; then
-    echo "Running npm test..."
-    npm test || exit 1
-  fi
+  grep -q '"lint"' package.json && { echo "Running lint..."; npm run lint || exit 1; }
+  grep -q '"test"' package.json && { echo "Running tests..."; npm test || exit 1; }
 elif [ -f "pyproject.toml" ]; then
-  # Python project with pyproject.toml
-  if command -v ruff &>/dev/null; then
-    echo "Running ruff..."
-    ruff check . || exit 1
-  fi
-  if command -v pytest &>/dev/null && [ -d "tests" ]; then
-    echo "Running pytest..."
-    pytest || exit 1
-  fi
+  command -v ruff &>/dev/null && { echo "Running ruff..."; ruff check . || exit 1; }
+  command -v pytest &>/dev/null && [ -d "tests" ] && { echo "Running pytest..."; pytest || exit 1; }
 fi
 
-# Success - either checks passed or none were configured
 exit 0
