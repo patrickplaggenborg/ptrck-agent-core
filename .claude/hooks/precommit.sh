@@ -4,6 +4,8 @@
 # Auto-detects and runs lint/test commands before git commits
 # Exits 0 (success) if no lint/test configured, so commits still work
 
+echo "[precommit hook] triggered"
+
 if [ -f "package.json" ]; then
   # Node.js project - check if scripts exist
   if grep -q '"lint"' package.json 2>/dev/null; then
