@@ -6,6 +6,7 @@ Commands:
     export         - Export frames/nodes as images (PNG, JPG, SVG, PDF)
     structure      - Get file/node structure as AI-optimized JSON
     tokens         - Extract design tokens (colors, typography, effects, spacing)
+    palette        - Group colors by component usage
     components     - List published components and styles
     analyze        - Full analysis (structure + tokens + thumbnails)
     comments       - Get comments from a file
@@ -20,6 +21,7 @@ Usage:
     python figma_api.py export --url "https://figma.com/file/ABC/Design" --output design.png
     python figma_api.py structure --url "https://figma.com/file/ABC/Design" --output structure.json
     python figma_api.py tokens --url "https://figma.com/file/ABC/Design" --output tokens.json
+    python figma_api.py palette --url "https://figma.com/file/ABC/Design" --pattern "Cape"
     python figma_api.py analyze --url "https://figma.com/file/ABC/Design" --output-dir ./export/
     python figma_api.py comments --url "https://figma.com/file/ABC/Design" --output comments.json
     python figma_api.py versions --url "https://figma.com/file/ABC/Design" --output versions.json
@@ -443,6 +445,38 @@ def extract_spacing_from_node(node: Dict, spacing_values: set) -> None:
         extract_spacing_from_node(child, spacing_values)
 
 
+def group_colors_by_component(colors: Dict, pattern: Optional[str] = None) -> Dict:
+    """Group colors by the components they're used in.
+
+    Args:
+        colors: Dict of hex colors with usedIn arrays
+        pattern: Optional component name pattern to filter (e.g., "Cape")
+
+    Returns:
+        Dict mapping component names to list of colors with counts
+    """
+    by_component: Dict[str, Dict[str, int]] = {}
+
+    for hex_color, info in colors.items():
+        for component_name in info.get('usedIn', []):
+            # Apply pattern filter if specified
+            if pattern and pattern.lower() not in component_name.lower():
+                continue
+            if component_name not in by_component:
+                by_component[component_name] = {}
+            by_component[component_name][hex_color] = by_component[component_name].get(hex_color, 0) + 1
+
+    # Convert to sorted list format (sorted by count descending)
+    result: Dict[str, List[Dict]] = {}
+    for component_name, color_counts in by_component.items():
+        result[component_name] = sorted(
+            [{'hex': hex_color, 'count': count} for hex_color, count in color_counts.items()],
+            key=lambda x: -x['count']
+        )
+
+    return result
+
+
 def simplify_node(node: Dict, depth: int = 0, max_depth: int = 10) -> Dict:
     """Simplify node structure for AI-optimized output."""
     simplified = {
@@ -682,6 +716,68 @@ def cmd_tokens(args, token: str) -> None:
     print(f"  Typography: {len(typography)}")
     print(f"  Effects: {len(effects)}")
     print(f"  Spacing values: {len(output['spacing'])}")
+
+
+# ============================================================================
+# Command: palette
+# ============================================================================
+
+def cmd_palette(args, token: str) -> None:
+    """Group colors by the components they're used in.
+
+    Shows which colors are used in which components, with usage counts.
+    Filter by component name pattern to focus on specific areas.
+    """
+    file_key, _ = parse_figma_url(args.url)
+
+    if args.verbose:
+        print("Fetching file data...")
+
+    file_data = get_file(file_key, token, use_cache=not args.no_cache)
+
+    # Extract colors
+    colors = {}
+    document = file_data.get('document', {})
+    for page in document.get('children', []):
+        extract_colors_from_node(page, colors)
+
+    if args.verbose:
+        print(f"Found {len(colors)} colors, grouping by component...")
+
+    # Group by component
+    pattern = getattr(args, 'pattern', None)
+    by_component = group_colors_by_component(colors, pattern)
+
+    # Build output
+    output = {
+        'by_component': by_component,
+        'metadata': {
+            'file_key': file_key,
+            'total_colors': len(colors),
+            'pattern_filter': pattern,
+            'components_found': len(by_component)
+        }
+    }
+
+    # Write output
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, 'w') as f:
+        json.dump(output, f, indent=2)
+
+    print(f"Palette saved to: {output_path}")
+    print(f"  Components: {len(by_component)}")
+    print(f"  Total colors: {len(colors)}")
+
+    # Print top components by color count
+    if by_component:
+        print(f"\nTop components:")
+        sorted_components = sorted(by_component.items(), key=lambda x: sum(c['count'] for c in x[1]), reverse=True)
+        for comp_name, comp_colors in sorted_components[:10]:
+            total = sum(c['count'] for c in comp_colors)
+            top_color = comp_colors[0]['hex'] if comp_colors else 'none'
+            print(f"  {comp_name}: {total} uses, top color {top_color}")
 
 
 # ============================================================================
@@ -1159,6 +1255,14 @@ def main():
     tokens_parser.add_argument('--no-cache', action='store_true', help='Bypass cache')
     tokens_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
 
+    # palette command
+    palette_parser = subparsers.add_parser('palette', help='Group colors by component usage')
+    palette_parser.add_argument('--url', required=True, help='Figma file URL')
+    palette_parser.add_argument('--output', '-o', default='palette.json', help='Output JSON file')
+    palette_parser.add_argument('--pattern', help='Component name pattern to filter (e.g., "Cape", "Rating")')
+    palette_parser.add_argument('--no-cache', action='store_true', help='Bypass cache')
+    palette_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+
     # components command
     components_parser = subparsers.add_parser('components', help='List published components and styles')
     components_parser.add_argument('--url', required=True, help='Figma file URL')
@@ -1244,6 +1348,8 @@ def main():
         cmd_structure(args, token)
     elif args.command == 'tokens':
         cmd_tokens(args, token)
+    elif args.command == 'palette':
+        cmd_palette(args, token)
     elif args.command == 'components':
         cmd_components(args, token)
     elif args.command == 'analyze':

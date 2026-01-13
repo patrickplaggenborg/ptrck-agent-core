@@ -598,3 +598,26 @@ Two MCP server options exist:
 | Plans | All (with limits) | Professional+ |
 
 **Recommendation:** Use Remote MCP for simplicity. Desktop MCP requires the Figma app to be running and is only available on Professional+ plans.
+
+### Known MCP Limitations
+
+#### Mode Resolution
+The `get_variable_defs` tool returns **resolved values for the current mode only**. If the Figma file is in light mode, you get light mode hex values, not dark mode values.
+
+**Workarounds for getting all mode values:**
+1. **Use REST API analysis** - Extract all colors with `tokens` command and analyze by component naming patterns (e.g., colors used in "Cape" components → `cape.color.palette.*`)
+2. **Switch modes in Figma** - Have user switch to dark mode in Figma desktop, then query again
+3. **Use `variables` command** - Infers variable names from component patterns and luminance grouping
+
+#### Selection Requirement
+Some MCP tools require a layer selected in Figma desktop app:
+- `get_variable_defs` → "You need to select a layer first"
+- `get_design_context` → Same error
+
+**Workaround:** Use `get_metadata` first (works without selection), then use returned node IDs:
+
+```
+1. Call get_metadata with file key and node ID from URL
+2. Find target component node IDs in the XML response
+3. Call get_design_context with those specific node IDs
+```
