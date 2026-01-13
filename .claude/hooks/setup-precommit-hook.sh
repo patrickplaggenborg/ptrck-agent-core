@@ -19,13 +19,13 @@ if [ ! -f "$SETTINGS_FILE" ]; then
 fi
 
 # Define the hook configuration
-# Uses Bash(git commit:*) matcher to filter at Claude Code level
-# Note: The colon before * is required for the pattern to work
+# Uses Bash matcher - script reads stdin JSON and filters for git commit
+# This catches all patterns including "git add && git commit"
 HOOK_CONFIG='{
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash(git commit:*)",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
