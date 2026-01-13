@@ -29,7 +29,7 @@ def get_headers(locale: str | None = None) -> dict:
         print(json.dumps({"error": "ELMAR_TOOLS_API_KEY environment variable not set"}))
         sys.exit(1)
 
-    headers = {"Authorization": f"Bearer {api_key}"}
+    headers = {"X-Api-Key": api_key}
     if locale:
         headers["Accept-Language"] = locale
     return headers
