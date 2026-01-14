@@ -1,38 +1,38 @@
 #!/usr/bin/env python3
 """
 Confluence API wrapper for Claude skills.
-Uses atlassian-python-api.
+Uses Confluence REST API v2 for pages, v1 for search and spaces.
 """
 
 import argparse
+import base64
 import json
 import os
 import sys
 from typing import Optional
+from urllib.parse import quote
 
-from atlassian import Confluence
+import requests
 
 
-def get_confluence_client() -> Confluence:
-    """Create Confluence client using CONFLUENCE_* environment variables."""
+def get_auth_header() -> dict:
+    """Create authorization header for API requests."""
     email = os.environ.get('CONFLUENCE_EMAIL')
     token = os.environ.get('CONFLUENCE_API_TOKEN')
-    cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID')
 
     if not email or not token:
         raise ValueError("CONFLUENCE_EMAIL and CONFLUENCE_API_TOKEN are required")
 
+    credentials = base64.b64encode(f"{email}:{token}".encode()).decode()
+    return {"Authorization": f"Basic {credentials}", "Content-Type": "application/json"}
+
+
+def get_base_url() -> str:
+    """Get the base URL for API requests."""
+    cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID')
     if not cloud_id:
         raise ValueError("CONFLUENCE_CLOUD_ID is required")
-
-    url = f"https://api.atlassian.com/ex/confluence/{cloud_id}"
-    return Confluence(url=url, username=email, password=token)
-
-
-def get_token_type() -> str:
-    """Return description of token type being used."""
-    cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID', 'not set')
-    return f"scoped (api.atlassian.com/ex/confluence/{cloud_id})"
+    return f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/api/v2"
 
 
 def format_response(data) -> str:
@@ -45,49 +45,71 @@ def format_error(message: str) -> str:
     return json.dumps({"error": message}, ensure_ascii=False, indent=2)
 
 
+def handle_response(response: requests.Response) -> dict:
+    """Handle API response and raise errors if needed."""
+    if response.status_code >= 400:
+        try:
+            error_data = response.json()
+            message = error_data.get("message", response.text)
+        except Exception:
+            message = response.text
+        raise Exception(f"{response.status_code}: {message}")
+    return response.json() if response.text else {}
+
+
 # Commands
 
 def test_connection() -> str:
-    """Test connection and show token info."""
+    """Test connection by fetching pages list."""
     try:
-        confluence = get_confluence_client()
-        # Get current user info
-        user = confluence.get_current_user()
+        base_url = get_base_url()
+        headers = get_auth_header()
+        response = requests.get(f"{base_url}/pages?limit=1", headers=headers)
+        handle_response(response)
+        cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID', 'not set')
         return format_response({
             "success": True,
-            "token_type": get_token_type(),
-            "user": {
-                "displayName": user.get("displayName"),
-                "email": user.get("email"),
-                "accountId": user.get("accountId"),
-            }
+            "api_version": "v2",
+            "endpoint": f"api.atlassian.com/ex/confluence/{cloud_id}"
         })
     except Exception as e:
         return format_error(str(e))
 
 
 def search_pages(query: str, space: Optional[str] = None, limit: int = 25) -> str:
-    """Search for pages."""
+    """Search for pages using CQL (Confluence Query Language)."""
     try:
-        confluence = get_confluence_client()
-        cql = f'text ~ "{query}"'
-        if space:
-            cql += f' AND space = "{space}"'
+        cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID')
+        if not cloud_id:
+            raise ValueError("CONFLUENCE_CLOUD_ID is required")
 
-        results = confluence.cql(cql, limit=limit)
+        # Use v1 search API with CQL (works with search:confluence scope)
+        search_url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/rest/api/search"
+        headers = get_auth_header()
+
+        # Build CQL query
+        cql = f'title~"{query}" AND type=page'
+        if space:
+            cql += f' AND space="{space}"'
+
+        params = {"cql": cql, "limit": limit}
+        response = requests.get(search_url, headers=headers, params=params)
+        data = handle_response(response)
+
         pages = []
-        for result in results.get("results", []):
-            content = result.get("content", result)
-            pages.append({
-                "id": content.get("id"),
-                "title": content.get("title"),
-                "type": content.get("type"),
-                "space": content.get("space", {}).get("key") if content.get("space") else None,
-                "_links": {
-                    "webui": content.get("_links", {}).get("webui"),
-                }
-            })
-        return format_response({"total": results.get("totalSize", len(pages)), "pages": pages})
+        for result in data.get("results", []):
+            content = result.get("content", {})
+            if content.get("type") == "page":
+                pages.append({
+                    "id": content.get("id"),
+                    "title": content.get("title"),
+                    "status": content.get("status"),
+                    "space": result.get("resultGlobalContainer", {}).get("title"),
+                    "_links": {
+                        "webui": content.get("_links", {}).get("webui"),
+                    }
+                })
+        return format_response({"total": len(pages), "pages": pages})
     except Exception as e:
         return format_error(str(e))
 
@@ -95,13 +117,20 @@ def search_pages(query: str, space: Optional[str] = None, limit: int = 25) -> st
 def get_page(page_id: str) -> str:
     """Get page content by ID."""
     try:
-        confluence = get_confluence_client()
-        page = confluence.get_page_by_id(page_id, expand="body.storage,version,space")
+        base_url = get_base_url()
+        headers = get_auth_header()
+
+        response = requests.get(
+            f"{base_url}/pages/{page_id}?body-format=storage",
+            headers=headers
+        )
+        page = handle_response(response)
+
         return format_response({
             "id": page.get("id"),
             "title": page.get("title"),
-            "type": page.get("type"),
-            "space": page.get("space", {}).get("key") if page.get("space") else None,
+            "status": page.get("status"),
+            "spaceId": page.get("spaceId"),
             "version": page.get("version", {}).get("number"),
             "body": page.get("body", {}).get("storage", {}).get("value"),
             "_links": {
@@ -120,18 +149,37 @@ def create_page(
 ) -> str:
     """Create a new page."""
     try:
-        confluence = get_confluence_client()
-        result = confluence.create_page(
-            space=space,
-            title=title,
-            body=content,
-            parent_id=parent_id
-        )
+        base_url = get_base_url()
+        headers = get_auth_header()
+
+        # Get space ID from space key
+        space_response = requests.get(f"{base_url}/spaces?keys={space}", headers=headers)
+        space_data = handle_response(space_response)
+        if not space_data.get("results"):
+            raise Exception(f"Space '{space}' not found")
+        space_id = space_data["results"][0]["id"]
+
+        body = {
+            "spaceId": space_id,
+            "status": "current",
+            "title": title,
+            "body": {
+                "representation": "storage",
+                "value": content
+            }
+        }
+
+        if parent_id:
+            body["parentId"] = parent_id
+
+        response = requests.post(f"{base_url}/pages", headers=headers, json=body)
+        result = handle_response(response)
+
         return format_response({
             "success": True,
             "id": result.get("id"),
             "title": result.get("title"),
-            "space": space,
+            "spaceId": result.get("spaceId"),
             "_links": {
                 "webui": result.get("_links", {}).get("webui"),
             }
@@ -147,19 +195,36 @@ def update_page(
 ) -> str:
     """Update an existing page."""
     try:
-        confluence = get_confluence_client()
+        base_url = get_base_url()
+        headers = get_auth_header()
 
         # Get current page to get version and current values
-        current = confluence.get_page_by_id(page_id, expand="body.storage,version")
+        current_response = requests.get(
+            f"{base_url}/pages/{page_id}?body-format=storage",
+            headers=headers
+        )
+        current = handle_response(current_response)
 
         new_title = title if title else current.get("title")
         new_content = content if content else current.get("body", {}).get("storage", {}).get("value", "")
+        current_version = current.get("version", {}).get("number", 1)
 
-        result = confluence.update_page(
-            page_id=page_id,
-            title=new_title,
-            body=new_content
-        )
+        body = {
+            "id": page_id,
+            "status": "current",
+            "title": new_title,
+            "body": {
+                "representation": "storage",
+                "value": new_content
+            },
+            "version": {
+                "number": current_version + 1
+            }
+        }
+
+        response = requests.put(f"{base_url}/pages/{page_id}", headers=headers, json=body)
+        result = handle_response(response)
+
         return format_response({
             "success": True,
             "id": result.get("id"),
@@ -173,8 +238,13 @@ def update_page(
 def delete_page(page_id: str) -> str:
     """Delete a page."""
     try:
-        confluence = get_confluence_client()
-        confluence.remove_page(page_id)
+        base_url = get_base_url()
+        headers = get_auth_header()
+
+        response = requests.delete(f"{base_url}/pages/{page_id}", headers=headers)
+        if response.status_code == 204:
+            return format_response({"success": True, "id": page_id, "deleted": True})
+        handle_response(response)
         return format_response({"success": True, "id": page_id, "deleted": True})
     except Exception as e:
         return format_error(str(e))
@@ -183,15 +253,24 @@ def delete_page(page_id: str) -> str:
 def list_spaces() -> str:
     """List all available spaces."""
     try:
-        confluence = get_confluence_client()
-        spaces = confluence.get_all_spaces(expand="description.plain")
+        cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID')
+        if not cloud_id:
+            raise ValueError("CONFLUENCE_CLOUD_ID is required")
+
+        # Use v1 space API (works with read:confluence-space.summary scope)
+        space_url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/rest/api/space"
+        headers = get_auth_header()
+
+        response = requests.get(f"{space_url}?limit=250", headers=headers)
+        data = handle_response(response)
+
         result = []
-        for space in spaces.get("results", []):
+        for space in data.get("results", []):
             result.append({
+                "id": space.get("id"),
                 "key": space.get("key"),
                 "name": space.get("name"),
                 "type": space.get("type"),
-                "description": space.get("description", {}).get("plain", {}).get("value") if space.get("description") else None,
             })
         return format_response({"spaces": result})
     except Exception as e:

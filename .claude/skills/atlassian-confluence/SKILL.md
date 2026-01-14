@@ -5,7 +5,7 @@ description: Manage Confluence pages via API. Provides search, page CRUD operati
 
 # Confluence Integration
 
-Manage Confluence pages using `atlassian-python-api`.
+Manage Confluence pages using the Confluence REST API v2.
 
 ## When to Use This Skill
 
@@ -19,7 +19,7 @@ Use this skill when the user wants to:
 
 1. **Install dependencies**:
    ```bash
-   pip install atlassian-python-api>=3.41.0
+   pip install requests
    ```
 
 2. **Configure authentication**:
@@ -124,12 +124,11 @@ Create tokens at: https://id.atlassian.com/manage-profile/security/api-tokens
 ## Error Handling
 
 When errors occur, check:
-1. Dependencies installed: `pip install atlassian-python-api`
+1. Dependencies installed: `pip install requests`
 2. Environment variables are set correctly (`CONFLUENCE_EMAIL`, `CONFLUENCE_API_TOKEN`, `CONFLUENCE_CLOUD_ID`)
 3. API token has required scopes for the operation
 4. Network connectivity to your Atlassian instance
 
 ## API Documentation
 
-- atlassian-python-api: https://atlassian-python-api.readthedocs.io/
-- Confluence REST API: https://developer.atlassian.com/cloud/confluence/rest/
+- Confluence REST API v2: https://developer.atlassian.com/cloud/confluence/rest/v2/
