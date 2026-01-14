@@ -14,37 +14,25 @@ from atlassian import Jira
 
 
 def get_jira_client() -> Jira:
-    """Create Jira client with appropriate URL based on token type."""
-    email = os.environ.get('ATLASSIAN_EMAIL')
-    token = os.environ.get('ATLASSIAN_API_TOKEN')
-    cloud_id = os.environ.get('ATLASSIAN_CLOUD_ID')
-    use_scoped = os.environ.get('ATLASSIAN_USE_SCOPED_TOKEN', '').lower() == 'true'
+    """Create Jira client using JIRA_* environment variables."""
+    email = os.environ.get('JIRA_EMAIL')
+    token = os.environ.get('JIRA_API_TOKEN')
+    cloud_id = os.environ.get('JIRA_CLOUD_ID')
 
     if not email or not token:
-        raise ValueError("ATLASSIAN_EMAIL and ATLASSIAN_API_TOKEN are required")
+        raise ValueError("JIRA_EMAIL and JIRA_API_TOKEN are required")
 
-    if use_scoped and cloud_id:
-        # Scoped token - use api.atlassian.com
-        url = f"https://api.atlassian.com/ex/jira/{cloud_id}"
-    else:
-        # Classic token - use site URL
-        url = os.environ.get('ATLASSIAN_URL')
-        if not url:
-            raise ValueError("ATLASSIAN_URL is required for classic tokens")
+    if not cloud_id:
+        raise ValueError("JIRA_CLOUD_ID is required")
 
+    url = f"https://api.atlassian.com/ex/jira/{cloud_id}"
     return Jira(url=url, username=email, password=token)
 
 
 def get_token_type() -> str:
     """Return description of token type being used."""
-    cloud_id = os.environ.get('ATLASSIAN_CLOUD_ID')
-    use_scoped = os.environ.get('ATLASSIAN_USE_SCOPED_TOKEN', '').lower() == 'true'
-
-    if use_scoped and cloud_id:
-        return f"scoped (api.atlassian.com/ex/jira/{cloud_id})"
-    else:
-        url = os.environ.get('ATLASSIAN_URL', 'not set')
-        return f"classic ({url})"
+    cloud_id = os.environ.get('JIRA_CLOUD_ID', 'not set')
+    return f"scoped (api.atlassian.com/ex/jira/{cloud_id})"
 
 
 def format_response(data) -> str:

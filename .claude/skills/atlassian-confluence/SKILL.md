@@ -1,11 +1,11 @@
 ---
 name: atlassian-confluence
-description: Manage Confluence pages via API. Provides search, page CRUD operations, and space listing. Supports both classic and scoped API tokens. This skill should be used when users need to interact with Confluence like "search Confluence pages", "create a new wiki page", "update documentation", or "list Confluence spaces".
+description: Manage Confluence pages via API. Provides search, page CRUD operations, and space listing. This skill should be used when users need to interact with Confluence like "search Confluence pages", "create a new wiki page", "update documentation", or "list Confluence spaces".
 ---
 
 # Confluence Integration
 
-Manage Confluence pages using `atlassian-python-api` with support for scoped API tokens.
+Manage Confluence pages using `atlassian-python-api`.
 
 ## When to Use This Skill
 
@@ -22,24 +22,15 @@ Use this skill when the user wants to:
    pip install atlassian-python-api>=3.41.0
    ```
 
-2. **Configure authentication** (choose one method):
-
-   **Option A: Classic API Token** (uses site-specific URL)
+2. **Configure authentication**:
    ```bash
-   export ATLASSIAN_URL="https://your-site.atlassian.net"
-   export ATLASSIAN_EMAIL="your.email@company.com"
-   export ATLASSIAN_API_TOKEN="your-api-token"
+   export CONFLUENCE_EMAIL="your.email@company.com"
+   export CONFLUENCE_API_TOKEN="your-confluence-token"
+   export CONFLUENCE_CLOUD_ID="your-cloud-id"
    ```
 
-   **Option B: Scoped API Token** (uses api.atlassian.com - more secure)
-   ```bash
-   export ATLASSIAN_EMAIL="your.email@company.com"
-   export ATLASSIAN_API_TOKEN="your-scoped-api-token"
-   export ATLASSIAN_CLOUD_ID="your-cloud-id"
-   export ATLASSIAN_USE_SCOPED_TOKEN="true"
-   ```
-
-   Get your Cloud ID from: `https://your-site.atlassian.net/_edge/tenant_info`
+   - Get your API token from: https://id.atlassian.com/manage-profile/security/api-tokens
+   - Get your Cloud ID from: `https://your-site.atlassian.net/_edge/tenant_info`
 
 3. **Verify setup**:
    ```bash
@@ -115,9 +106,9 @@ All commands return JSON output for easy parsing. Example:
 }
 ```
 
-## Scoped Token Configuration
+## API Token Scopes
 
-When using scoped API tokens, you need specific scopes for different operations:
+When creating your API token, you need specific scopes for different operations:
 
 | Operation | Required Scopes |
 |-----------|----------------|
@@ -128,16 +119,15 @@ When using scoped API tokens, you need specific scopes for different operations:
 | Delete pages | `delete:page:confluence` |
 | List spaces | `read:confluence-space.summary` |
 
-Create scoped tokens at: https://id.atlassian.com/manage-profile/security/api-tokens
+Create tokens at: https://id.atlassian.com/manage-profile/security/api-tokens
 
 ## Error Handling
 
 When errors occur, check:
 1. Dependencies installed: `pip install atlassian-python-api`
-2. Environment variables are set correctly
-3. For scoped tokens: using correct Cloud ID and api.atlassian.com endpoint
-4. Required permissions/scopes for the operation
-5. Network connectivity to your Atlassian instance
+2. Environment variables are set correctly (`CONFLUENCE_EMAIL`, `CONFLUENCE_API_TOKEN`, `CONFLUENCE_CLOUD_ID`)
+3. API token has required scopes for the operation
+4. Network connectivity to your Atlassian instance
 
 ## API Documentation
 

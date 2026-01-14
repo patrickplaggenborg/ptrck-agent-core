@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Confluence API wrapper for Claude skills.
-Uses atlassian-python-api with support for scoped API tokens.
+Uses atlassian-python-api.
 """
 
 import argparse
@@ -14,38 +14,25 @@ from atlassian import Confluence
 
 
 def get_confluence_client() -> Confluence:
-    """Create Confluence client with appropriate URL based on token type."""
-    email = os.environ.get('ATLASSIAN_EMAIL')
-    token = os.environ.get('ATLASSIAN_API_TOKEN')
-    cloud_id = os.environ.get('ATLASSIAN_CLOUD_ID')
-    use_scoped = os.environ.get('ATLASSIAN_USE_SCOPED_TOKEN', '').lower() == 'true'
+    """Create Confluence client using CONFLUENCE_* environment variables."""
+    email = os.environ.get('CONFLUENCE_EMAIL')
+    token = os.environ.get('CONFLUENCE_API_TOKEN')
+    cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID')
 
     if not email or not token:
-        raise ValueError("ATLASSIAN_EMAIL and ATLASSIAN_API_TOKEN are required")
+        raise ValueError("CONFLUENCE_EMAIL and CONFLUENCE_API_TOKEN are required")
 
-    if use_scoped and cloud_id:
-        # Scoped token - use api.atlassian.com
-        url = f"https://api.atlassian.com/ex/confluence/{cloud_id}"
-    else:
-        # Classic token - use site URL with /wiki suffix
-        base_url = os.environ.get('ATLASSIAN_URL')
-        if not base_url:
-            raise ValueError("ATLASSIAN_URL is required for classic tokens")
-        url = f"{base_url.rstrip('/')}/wiki"
+    if not cloud_id:
+        raise ValueError("CONFLUENCE_CLOUD_ID is required")
 
+    url = f"https://api.atlassian.com/ex/confluence/{cloud_id}"
     return Confluence(url=url, username=email, password=token)
 
 
 def get_token_type() -> str:
     """Return description of token type being used."""
-    cloud_id = os.environ.get('ATLASSIAN_CLOUD_ID')
-    use_scoped = os.environ.get('ATLASSIAN_USE_SCOPED_TOKEN', '').lower() == 'true'
-
-    if use_scoped and cloud_id:
-        return f"scoped (api.atlassian.com/ex/confluence/{cloud_id})"
-    else:
-        url = os.environ.get('ATLASSIAN_URL', 'not set')
-        return f"classic ({url}/wiki)"
+    cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID', 'not set')
+    return f"scoped (api.atlassian.com/ex/confluence/{cloud_id})"
 
 
 def format_response(data) -> str:
