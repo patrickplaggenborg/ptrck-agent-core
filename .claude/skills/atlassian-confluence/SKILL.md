@@ -46,7 +46,7 @@ The Confluence tool is located at `.claude/skills/atlassian-confluence/scripts/c
 | Command | Description | Example |
 |---------|-------------|---------|
 | `test` | Test connection | `test` |
-| `search` | Search pages | `search "meeting notes"` |
+| `search` | Search pages | `search "query" [--space X] [--labels L1 L2] [--creator user] [--created-after DATE] [--modified-after DATE] [--sort "field dir"]` |
 | `get` | View page content | `get 12345` |
 | `create` | Create a new page | `create --space DEV --title "Title" --content "Content"` |
 | `update` | Update a page | `update 12345 --content "New content"` |
@@ -62,8 +62,26 @@ python3 .claude/skills/atlassian-confluence/scripts/confluence_api.py test
 
 #### Search Pages
 ```bash
+# Basic search (searches title and content)
 python3 .claude/skills/atlassian-confluence/scripts/confluence_api.py search "project documentation"
+
+# Filter by space
 python3 .claude/skills/atlassian-confluence/scripts/confluence_api.py search "meeting notes" --space DEV
+
+# Filter by labels
+python3 .claude/skills/atlassian-confluence/scripts/confluence_api.py search "roadmap" --labels planning Q1
+
+# Filter by creator
+python3 .claude/skills/atlassian-confluence/scripts/confluence_api.py search "design" --creator johndoe
+
+# Filter by date
+python3 .claude/skills/atlassian-confluence/scripts/confluence_api.py search "meeting" --modified-after 2024-01-01
+
+# Sort results
+python3 .claude/skills/atlassian-confluence/scripts/confluence_api.py search "API" --sort "lastmodified desc"
+
+# Combine filters
+python3 .claude/skills/atlassian-confluence/scripts/confluence_api.py search "project" --space DEV --labels active --sort "title asc"
 ```
 
 #### View Page Content

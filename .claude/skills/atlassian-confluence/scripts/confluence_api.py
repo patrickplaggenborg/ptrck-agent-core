@@ -9,7 +9,7 @@ import base64
 import json
 import os
 import sys
-from typing import Optional
+from typing import List, Optional
 from urllib.parse import quote
 
 import requests
@@ -76,7 +76,16 @@ def test_connection() -> str:
         return format_error(str(e))
 
 
-def search_pages(query: str, space: Optional[str] = None, limit: int = 25) -> str:
+def search_pages(
+    query: str,
+    space: Optional[str] = None,
+    labels: Optional[List[str]] = None,
+    creator: Optional[str] = None,
+    created_after: Optional[str] = None,
+    modified_after: Optional[str] = None,
+    sort: Optional[str] = None,
+    limit: int = 25
+) -> str:
     """Search for pages using CQL (Confluence Query Language)."""
     try:
         cloud_id = os.environ.get('CONFLUENCE_CLOUD_ID')
@@ -87,10 +96,21 @@ def search_pages(query: str, space: Optional[str] = None, limit: int = 25) -> st
         search_url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/rest/api/search"
         headers = get_auth_header()
 
-        # Build CQL query
-        cql = f'title~"{query}" AND type=page'
+        # Build CQL query - search in both title and content
+        cql = f'(title~"{query}" OR text~"{query}") AND type=page'
         if space:
             cql += f' AND space="{space}"'
+        if labels:
+            label_clause = ' AND '.join(f'label="{lbl}"' for lbl in labels)
+            cql += f' AND ({label_clause})'
+        if creator:
+            cql += f' AND creator="{creator}"'
+        if created_after:
+            cql += f' AND created>="{created_after}"'
+        if modified_after:
+            cql += f' AND lastmodified>="{modified_after}"'
+        if sort:
+            cql += f' order by {sort}'
 
         params = {"cql": cql, "limit": limit}
         response = requests.get(search_url, headers=headers, params=params)
@@ -100,7 +120,7 @@ def search_pages(query: str, space: Optional[str] = None, limit: int = 25) -> st
         for result in data.get("results", []):
             content = result.get("content", {})
             if content.get("type") == "page":
-                pages.append({
+                page_info = {
                     "id": content.get("id"),
                     "title": content.get("title"),
                     "status": content.get("status"),
@@ -108,7 +128,19 @@ def search_pages(query: str, space: Optional[str] = None, limit: int = 25) -> st
                     "_links": {
                         "webui": content.get("_links", {}).get("webui"),
                     }
-                })
+                }
+                # Add excerpt if available
+                if result.get("excerpt"):
+                    page_info["excerpt"] = result.get("excerpt")
+                # Add last modified date if available
+                if result.get("lastModified"):
+                    page_info["lastModified"] = result.get("lastModified")
+                # Add labels from content metadata
+                metadata = content.get("metadata", {})
+                labels_data = metadata.get("labels", {})
+                if labels_data.get("results"):
+                    page_info["labels"] = [lbl.get("name") for lbl in labels_data.get("results", [])]
+                pages.append(page_info)
         return format_response({"total": len(pages), "pages": pages})
     except Exception as e:
         return format_error(str(e))
@@ -288,6 +320,11 @@ def main():
     search_parser = subparsers.add_parser("search", help="Search pages")
     search_parser.add_argument("query", help="Search query")
     search_parser.add_argument("--space", "-s", help="Filter by space key")
+    search_parser.add_argument("--labels", "-L", nargs="+", help="Filter by labels")
+    search_parser.add_argument("--creator", help="Filter by creator username")
+    search_parser.add_argument("--created-after", help="Created after date (YYYY-MM-DD)")
+    search_parser.add_argument("--modified-after", help="Modified after date (YYYY-MM-DD)")
+    search_parser.add_argument("--sort", help="Sort order (e.g., 'lastmodified desc')")
     search_parser.add_argument("--limit", "-l", type=int, default=25, help="Max results")
 
     # Get
@@ -324,7 +361,16 @@ def main():
         if args.command == "test":
             print(test_connection())
         elif args.command == "search":
-            print(search_pages(args.query, args.space, args.limit))
+            print(search_pages(
+                args.query,
+                args.space,
+                args.labels,
+                args.creator,
+                getattr(args, 'created_after', None),
+                getattr(args, 'modified_after', None),
+                args.sort,
+                args.limit
+            ))
         elif args.command == "get":
             print(get_page(args.page_id))
         elif args.command == "create":
