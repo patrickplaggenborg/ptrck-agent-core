@@ -1,6 +1,6 @@
 ---
 name: atlassian-confluence
-description: Manage Confluence pages via API. Provides search, page CRUD operations, and space listing. This skill should be used when users need to interact with Confluence like "search Confluence pages", "create a new wiki page", "update documentation", or "list Confluence spaces".
+description: Manage Confluence pages via API. Provides search, page CRUD operations, and space listing. This skill should be used when users share Confluence URLs (*.atlassian.net/wiki/*), want to view page content, search pages, create/update/delete pages, or list spaces.
 ---
 
 # Confluence Integration
@@ -9,11 +9,12 @@ Manage Confluence pages using the Confluence REST API v2.
 
 ## When to Use This Skill
 
-Use this skill when the user wants to:
-- Search for pages
-- View page content
-- Create, update, or delete pages
-- List available spaces
+Use this skill when:
+- **User shares a Confluence URL** (e.g., `https://site.atlassian.net/wiki/spaces/X/pages/123/Title`)
+- User wants to search for pages
+- User wants to view page content
+- User wants to create, update, or delete pages
+- User wants to list available spaces
 
 ## Prerequisites
 
